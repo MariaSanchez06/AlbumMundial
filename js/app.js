@@ -265,7 +265,7 @@ function renderEquipos(container) {
       const total  = cromos.length;
       const pct    = total > 0 ? Math.round(tengo / total * 100) : 0;
       return `
-        <div class="team-section" data-equipo="${eq}">
+        <div class="team-section collapsed" data-equipo="${eq}">
           <div class="team-header team-toggle">
             <span class="team-name">${eq}</span>
             <div class="team-progress-wrap">
