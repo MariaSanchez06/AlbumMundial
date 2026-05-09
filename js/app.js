@@ -2,10 +2,12 @@
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* ===== State ===== */
-let allCromos = [];
+let allCromos  = [];
 let currentView = 'inicio';
 let searchTerm  = '';
 let equipoFilter = '';
+let gruposMap  = {};   // { equipo: grupo }
+let equiposReg = [];   // [{ equipo, siglas, grupo }]
 
 /* ===== Team color map ===== */
 const TEAM_COLORS = {
@@ -63,22 +65,56 @@ const PREDEFINED_GROUPS = [
   'ESPECIALES'
 ];
 
-/* ===== Grupos — localStorage ===== */
-function getGruposMap()    { try { return JSON.parse(localStorage.getItem('grupos_map') || '{}'); } catch { return {}; } }
-function saveGruposMap(m)  { localStorage.setItem('grupos_map', JSON.stringify(m)); }
-function getRegisteredTeams() { try { return JSON.parse(localStorage.getItem('equipos_reg') || '[]'); } catch { return []; } }
+/* ===== Grupos & equipos — Supabase ===== */
+async function loadGruposYEquipos() {
+  const [gRes, eRes] = await Promise.all([
+    db.from('grupos').select('*'),
+    db.from('equipos_reg').select('*')
+  ]);
+  gruposMap  = {};
+  if (gRes.data) gRes.data.forEach(r => { gruposMap[r.equipo] = r.grupo; });
+  equiposReg = eRes.data || [];
+}
+
+async function migrateLocalStorage() {
+  try {
+    const localMap   = JSON.parse(localStorage.getItem('grupos_map')  || '{}');
+    const localTeams = JSON.parse(localStorage.getItem('equipos_reg') || '[]');
+    if (Object.keys(localMap).length === 0 && localTeams.length === 0) return;
+    const { data: existing } = await db.from('grupos').select('equipo').limit(1);
+    if (existing && existing.length > 0) { localStorage.removeItem('grupos_map'); localStorage.removeItem('equipos_reg'); localStorage.removeItem('grupos_list'); return; }
+    const gruposRows = Object.entries(localMap).map(([equipo, grupo]) => ({ equipo, grupo }));
+    if (gruposRows.length)  await db.from('grupos').insert(gruposRows);
+    if (localTeams.length)  await db.from('equipos_reg').insert(localTeams);
+    localStorage.removeItem('grupos_map');
+    localStorage.removeItem('equipos_reg');
+    localStorage.removeItem('grupos_list');
+  } catch (e) { console.warn('Migration:', e); }
+}
+
+function saveEquipoGrupo(equipo, grupo) {
+  gruposMap[equipo] = grupo;
+  db.from('grupos').upsert({ equipo, grupo });
+}
+function removeEquipoGrupo(equipo) {
+  delete gruposMap[equipo];
+  db.from('grupos').delete().eq('equipo', equipo);
+}
 function saveRegisteredTeam(equipo, siglas, grupo) {
-  const teams = getRegisteredTeams().filter(t => t.equipo !== equipo);
-  teams.push({ equipo, siglas, grupo });
-  localStorage.setItem('equipos_reg', JSON.stringify(teams));
-  const map = getGruposMap();
-  if (grupo) map[equipo] = grupo; else delete map[equipo];
-  saveGruposMap(map);
+  equiposReg = equiposReg.filter(t => t.equipo !== equipo);
+  const entry = { equipo, siglas: siglas || '', grupo: grupo || '' };
+  equiposReg.push(entry);
+  db.from('equipos_reg').upsert(entry);
+  if (grupo) saveEquipoGrupo(equipo, grupo);
+}
+function removeRegisteredTeam(equipo) {
+  equiposReg = equiposReg.filter(t => t.equipo !== equipo);
+  db.from('equipos_reg').delete().eq('equipo', equipo);
 }
 function populateGruposDatalist() {
   const dl = document.getElementById('grupos-datalist');
   if (!dl) return;
-  const grupos = [...new Set(Object.values(getGruposMap()))].sort();
+  const grupos = [...new Set(Object.values(gruposMap))].sort();
   dl.innerHTML = grupos.map(g => `<option value="${g}">`).join('');
 }
 
@@ -100,16 +136,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 /* ===== Data loading ===== */
 async function loadCromos() {
   showLoading();
-  const { data, error } = await db
-    .from('cromos')
-    .select('*')
-    .order('equipo')
-    .order('numero');
-
-  if (error) {
-    showDBError(error);
-    return;
-  }
+  await migrateLocalStorage();
+  const [{ data, error }] = await Promise.all([
+    db.from('cromos').select('*').order('equipo').order('numero'),
+    loadGruposYEquipos()
+  ]);
+  if (error) { showDBError(error); return; }
   allCromos = data;
   populateEquipoSelect();
   updateHeaderStats();
@@ -224,8 +256,7 @@ function renderGrid(container, cromos, title) {
 
 /* ===== Equipos view ===== */
 function renderEquipos(container) {
-  const gruposMap = getGruposMap();
-  const regTeams  = getRegisteredTeams();
+  const regTeams  = equiposReg;
   const filter    = equipoFilter;
 
   const teamsFromDB = [...new Set(allCromos.map(c => c.equipo))];
@@ -757,22 +788,9 @@ function closeGrupoModal() {
 function submitGrupoModal() {
   const nombre = document.getElementById('input-nuevo-grupo').value.trim().toUpperCase();
   if (!nombre) return;
-  const map = getGruposMap();
-  if (!Object.values(map).includes(nombre)) {
-    // Guardar grupo vacío con un marcador para que exista en la lista
-    const grupos = getGruposList();
-    if (!grupos.includes(nombre)) {
-      grupos.push(nombre);
-      localStorage.setItem('grupos_list', JSON.stringify(grupos));
-    }
-  }
   closeGrupoModal();
   showToast(`✓ Grupo "${nombre}" creado`, 'green');
   if (currentView === 'equipos') renderCurrentView();
-}
-
-function getGruposList() {
-  try { return JSON.parse(localStorage.getItem('grupos_list') || '[]'); } catch { return []; }
 }
 
 /* ===== Modal: nuevo equipo ===== */
@@ -807,9 +825,7 @@ function closeEquipoModal() {
 }
 
 function getAllGrupos() {
-  const fromMap  = Object.values(getGruposMap());
-  const fromList = getGruposList();
-  const extra    = [...new Set([...fromList, ...fromMap])].filter(g => !PREDEFINED_GROUPS.includes(g)).sort();
+  const extra = [...new Set(Object.values(gruposMap))].filter(g => !PREDEFINED_GROUPS.includes(g)).sort();
   return [...PREDEFINED_GROUPS, ...extra];
 }
 
@@ -840,7 +856,7 @@ function bindBorrarModal() {
 function openBorrarModal() {
   const allTeams = [...new Set([
     ...allCromos.map(c => c.equipo),
-    ...getRegisteredTeams().map(t => t.equipo)
+    ...equiposReg.map(t => t.equipo)
   ])].sort();
   const sel = document.getElementById('borrar-equipo-select');
   sel.innerHTML = '<option value="">— Selecciona un equipo —</option>' +
@@ -861,10 +877,8 @@ async function deleteEquipo(equipo) {
 
   allCromos = allCromos.filter(c => c.equipo !== equipo);
 
-  const map = getGruposMap();
-  delete map[equipo];
-  saveGruposMap(map);
-  localStorage.setItem('equipos_reg', JSON.stringify(getRegisteredTeams().filter(t => t.equipo !== equipo)));
+  removeEquipoGrupo(equipo);
+  removeRegisteredTeam(equipo);
 
   populateEquipoSelect();
   updateHeaderStats();
