@@ -471,7 +471,29 @@ body {
   transition: opacity .15s, transform .15s;
   font-family: inherit;
 }
+.btn-nuevo-equipo.btn-outline {
+  background: transparent;
+  border: 1.5px solid rgba(245,200,66,.5);
+  color: var(--gold);
+}
 .btn-nuevo-equipo:hover { opacity: .88; transform: translateY(-1px); }
+
+.modal-panel-sm { max-width: 380px; }
+
+.equipo-grupo-select, #equipo-grupo-select {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-size: .9rem;
+  background: var(--card-2);
+  color: var(--text);
+  outline: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color .2s;
+}
+#equipo-grupo-select:focus { border-color: var(--gold); }
 
 /* ===== Group sections ===== */
 .group-section { margin-bottom: 32px; }
