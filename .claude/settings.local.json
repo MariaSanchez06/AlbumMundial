@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//usr/local/bin/**)",
+      "Read(//usr/lib/**)",
+      "Bash(apt list *)",
+      "Bash(/mnt/c/Users/maria/AppData/Local/Microsoft/WindowsApps/python3.exe --version)",
+      "Bash(\"/mnt/c/Program Files/PostgreSQL/12/pgAdmin 4/python/python.exe\" --version)",
+      "Bash(\"/mnt/c/Program Files/PostgreSQL/12/pgAdmin 4/python/python.exe\" -c \"import openpyxl; print\\('openpyxl ok'\\)\")",
+      "Bash(\"/mnt/c/Program Files/PostgreSQL/12/pgAdmin 4/python/python.exe\" -m pip install openpyxl --quiet)",
+      "Bash('/mnt/c/Program Files/PostgreSQL/12/pgAdmin 4/python/python.exe' -c ' *)",
+      "Bash(/mnt/c/Program Files/PostgreSQL/12/pgAdmin 4/python/python.exe *)",
+      "Bash(node --input-type=module)",
+      "Bash(python3 -c ' *)",
+      "Bash(curl -sL \"https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js\" -o /home/maria/AlbumMundial/js/supabase.min.js)",
+      "Bash(git --version)",
+      "Bash(gh --version)"
+    ]
+  }
+}
