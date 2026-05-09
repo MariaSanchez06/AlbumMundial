@@ -248,6 +248,7 @@ function renderEquipos(container) {
         Equipos <span class="section-count">${allTeams.length}</span>
       </span>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn-nuevo-equipo" id="btn-anadir-jugadores">+ Añadir jugadores</button>
         <button class="btn-nuevo-equipo" id="btn-nuevo-equipo">+ Añadir equipo</button>
         <button class="btn-nuevo-equipo btn-nuevo-equipo-danger" id="btn-borrar-equipo">Borrar equipo</button>
       </div>
@@ -302,6 +303,7 @@ function renderEquipos(container) {
       header.closest('.team-section').classList.toggle('collapsed');
     });
   });
+  document.getElementById('btn-anadir-jugadores')?.addEventListener('click', openModal);
   document.getElementById('btn-nuevo-equipo')?.addEventListener('click', () => openEquipoModal());
   document.getElementById('btn-borrar-equipo')?.addEventListener('click', openBorrarModal);
   container.querySelectorAll('.btn-add-equipo-grupo').forEach(btn => {
@@ -654,7 +656,6 @@ function showToast(msg, type = '') {
 
 /* ===== Modal: añadir jugadores (FAB) ===== */
 function bindModal() {
-  document.getElementById('fab-add').addEventListener('click', openModal);
   document.getElementById('modal-close').addEventListener('click', closeModal);
   document.getElementById('modal-overlay').addEventListener('click', e => {
     if (e.target === e.currentTarget) closeModal();

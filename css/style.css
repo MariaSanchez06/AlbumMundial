@@ -62,7 +62,7 @@ body {
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(0,0,0,.06);
   color: var(--text);
-  padding: 14px 16px;
+  padding: 10px 16px;
   position: sticky;
   top: 0;
   z-index: 100;
@@ -74,8 +74,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
+  gap: 8px;
+  flex-wrap: nowrap;
 }
 .header-title { display: flex; align-items: center; gap: 10px; }
 .trophy { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; object-position: center 20%; flex-shrink: 0; }
@@ -119,15 +119,14 @@ body {
 }
 .stat-pill + .stat-pill { border-left: 1px solid rgba(0,0,0,.1); }
 .stat-pill.stat-pill-miss, .stat-pill.stat-pill-pct { background: none; }
-.stat-num { display: inline; font-family: 'Barlow Condensed', sans-serif; font-size: 1.15rem; font-weight: 800; line-height: 1; color: var(--text); }
+.stat-num { display: inline; font-family: 'Barlow Condensed', sans-serif; font-size: 1.1rem; font-weight: 800; line-height: 1; color: var(--text); }
 .stat-pill-miss .stat-num { color: var(--red); }
 .stat-pill-pct  .stat-num { color: var(--gold-dark); }
-.stat-label { font-size: .8rem; font-weight: 600; color: var(--text-sub); letter-spacing: 0; text-transform: none; }
+.stat-label { font-size: .68rem; font-weight: 600; color: var(--text-sub); letter-spacing: 0; text-transform: none; }
 
 /* ===== Nav — floating pill ===== */
 .nav {
   display: flex;
-  justify-content: center;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
@@ -148,6 +147,7 @@ body {
   padding: 4px;
   gap: 2px;
   flex-shrink: 0;
+  margin: 0 auto;
 }
 .nav-btn {
   flex: 0 0 auto;
@@ -227,10 +227,9 @@ body {
 .config-error code { background: #f5f5f5; padding: 2px 6px; border-radius: 4px; font-size: .85rem; }
 
 /* ===== Cromos grid ===== */
-.cromos-grid { display: grid; grid-template-columns: repeat(1, 1fr); gap: 14px; align-items: start; }
-@media (min-width: 420px)  { .cromos-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (min-width: 700px)  { .cromos-grid { grid-template-columns: repeat(3, 1fr); } }
-@media (min-width: 1024px) { .cromos-grid { grid-template-columns: repeat(4, 1fr); } }
+.cromos-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; align-items: start; }
+@media (min-width: 640px)  { .cromos-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 960px)  { .cromos-grid { grid-template-columns: repeat(4, 1fr); } }
 
 /* ===== Cromo card — completamente rediseñado ===== */
 .cromo-card {
@@ -670,24 +669,27 @@ body {
 /* ===== FAB ===== */
 .fab {
   position: fixed;
-  bottom: 28px; right: 20px;
-  width: 56px; height: 56px;
-  border-radius: 50%;
+  bottom: 24px; right: 16px;
+  border-radius: 100px;
   background: var(--green);
   color: white;
-  font-size: 1.6rem;
-  font-weight: 300;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: .5px;
+  text-transform: uppercase;
   border: none;
   cursor: pointer;
+  padding: 12px 22px;
   box-shadow: 0 4px 20px rgba(13,107,54,.4);
   z-index: 200;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform .15s, box-shadow .15s;
+  transition: opacity .15s, transform .15s, box-shadow .15s;
 }
-.fab:hover  { transform: scale(1.08); box-shadow: 0 6px 28px rgba(13,107,54,.5); }
-.fab:active { transform: scale(.92); }
+.fab:hover  { opacity: .88; transform: translateY(-2px); box-shadow: 0 6px 28px rgba(13,107,54,.5); }
+.fab:active { transform: scale(.95); }
 
 /* ===== Modal ===== */
 .modal-overlay {

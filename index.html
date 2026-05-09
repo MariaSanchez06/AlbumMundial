@@ -43,7 +43,7 @@
         </div>
         <div class="stat-pill stat-pill-miss">
           <span class="stat-num" id="stat-num-faltan">—</span>
-          <span class="stat-label">faltan</span>
+          <span class="stat-label">sin obtener</span>
         </div>
         <div class="stat-pill stat-pill-pct">
           <span class="stat-num" id="stat-pct">—</span>
@@ -62,7 +62,7 @@
     </div>
   </nav>
 
-  <div class="search-bar" id="search-container">
+  <div class="search-bar" id="search-container" style="display:none">
     <input type="search" id="search-input" placeholder="Buscar jugador o equipo..." autocomplete="off" inputmode="search">
     <span class="search-icon">🔍</span>
   </div>
@@ -82,9 +82,7 @@
 
   <div class="toast" id="toast"></div>
 
-  <button class="fab" id="fab-add" title="Añadir jugadores">+</button>
-
-  <!-- Modal: añadir jugadores (FAB) -->
+  <!-- Modal: añadir jugadores -->
   <div class="modal-overlay" id="modal-overlay">
     <div class="modal-panel" role="dialog" aria-modal="true">
       <div class="modal-header">
