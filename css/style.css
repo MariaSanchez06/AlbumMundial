@@ -2,18 +2,20 @@
 :root {
   --green:      #0d6b36;
   --green-dark: #094d27;
-  --green-light:#e8f5ee;
-  --gold:       #f0a500;
-  --gold-light: #fff8e6;
-  --red:        #c0392b;
-  --bg:         #f4f6f8;
-  --card:       #ffffff;
-  --border:     #e0e5eb;
-  --text:       #1a2332;
-  --text-sub:   #637080;
-  --radius:     10px;
-  --shadow:     0 2px 8px rgba(0,0,0,.08);
-  --shadow-lg:  0 4px 20px rgba(0,0,0,.12);
+  --green-light:#1a3328;
+  --gold:       #f5c842;
+  --gold-dark:  #c9922a;
+  --gold-light: #2a2010;
+  --red:        #e74c3c;
+  --bg:         #0e0e1a;
+  --card:       #1c1c2e;
+  --card-2:     #13131f;
+  --border:     #2d2d45;
+  --text:       #f0f0f0;
+  --text-sub:   #8888aa;
+  --radius:     12px;
+  --shadow:     0 2px 12px rgba(0,0,0,.45);
+  --shadow-lg:  0 4px 28px rgba(0,0,0,.55);
 }
 
 /* ===== Reset ===== */
@@ -28,7 +30,7 @@ body {
 
 /* ===== Header ===== */
 .header {
-  background: linear-gradient(135deg, var(--green-dark) 0%, var(--green) 100%);
+  background: linear-gradient(135deg, #07070f 0%, #12121e 60%, #1a1a2e 100%);
   color: white;
   padding: 16px;
   position: sticky;
@@ -90,14 +92,14 @@ body {
   text-align: center;
   min-width: 56px;
 }
-.stat-pill.stat-pill-miss { background: rgba(192,57,43,.35); border-color: rgba(192,57,43,.5); }
-.stat-pill.stat-pill-pct  { background: rgba(240,165,0,.3); border-color: rgba(240,165,0,.5); }
+.stat-pill.stat-pill-miss { background: rgba(231,76,60,.25); border-color: rgba(231,76,60,.45); }
+.stat-pill.stat-pill-pct  { background: rgba(245,200,66,.2); border-color: rgba(245,200,66,.5); color: var(--gold); }
 .stat-num { display: block; font-size: .95rem; font-weight: 700; line-height: 1; }
 .stat-label { font-size: .6rem; opacity: .8; text-transform: uppercase; letter-spacing: .5px; }
 
 /* ===== Nav ===== */
 .nav {
-  background: white;
+  background: var(--card-2);
   border-bottom: 1px solid var(--border);
   display: flex;
   overflow-x: auto;
@@ -121,8 +123,8 @@ body {
   transition: color .2s, border-color .2s;
   white-space: nowrap;
 }
-.nav-btn:hover  { color: var(--green); }
-.nav-btn.active { color: var(--green); border-bottom-color: var(--green); font-weight: 600; }
+.nav-btn:hover  { color: var(--gold); }
+.nav-btn.active { color: var(--gold); border-bottom-color: var(--gold); font-weight: 600; }
 
 /* ===== Search ===== */
 .search-bar {
@@ -137,11 +139,13 @@ body {
   border: 1px solid var(--border);
   border-radius: 8px;
   font-size: .9rem;
-  background: white;
+  background: var(--card);
+  color: var(--text);
   outline: none;
   transition: border-color .2s, box-shadow .2s;
 }
-.search-bar input:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(13,107,54,.1); }
+.search-bar input::placeholder { color: var(--text-sub); }
+.search-bar input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(245,200,66,.15); }
 .search-icon { position: absolute; right: 28px; top: 50%; transform: translateY(-25%); font-size: .9rem; pointer-events: none; }
 
 /* ===== Equipo selector ===== */
@@ -156,16 +160,17 @@ body {
   border: 1px solid var(--border);
   border-radius: 8px;
   font-size: .9rem;
-  background: white;
+  background: var(--card);
+  color: var(--text);
   outline: none;
   cursor: pointer;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23637080' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238888aa' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
   padding-right: 36px;
 }
-.equipo-select select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(13,107,54,.1); }
+.equipo-select select:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(245,200,66,.15); }
 
 /* ===== Main content ===== */
 .main-content {
@@ -221,10 +226,10 @@ body {
 /* ===== Cromo card ===== */
 .cromo-card {
   background: var(--card);
-  border: 2px solid transparent;
+  border: 2px solid var(--border);
   border-radius: 14px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,.07);
+  box-shadow: 0 2px 12px rgba(0,0,0,.4);
   cursor: pointer;
   user-select: none;
   position: relative;
@@ -233,13 +238,14 @@ body {
 @media (hover: hover) {
   .cromo-card:hover {
     transform: translateY(-3px);
-    box-shadow: 0 8px 24px rgba(0,0,0,.13);
+    box-shadow: 0 8px 28px rgba(0,0,0,.55);
+    border-color: rgba(245,200,66,.4);
   }
 }
 .cromo-card:active { transform: scale(.96); }
 .cromo-card.obtenido {
-  border-color: var(--green);
-  box-shadow: 0 4px 16px rgba(13,107,54,.2);
+  border-color: var(--gold);
+  box-shadow: 0 0 20px rgba(245,200,66,.28), 0 4px 16px rgba(0,0,0,.4);
 }
 
 /* Banner con colores de bandera */
@@ -252,19 +258,20 @@ body {
   padding: 0 10px;
 }
 .cromo-tag {
-  font-size: .62rem;
+  font-size: .65rem;
   font-weight: 900;
-  letter-spacing: .8px;
+  letter-spacing: 1px;
   color: white;
-  text-shadow: 0 1px 3px rgba(0,0,0,.35);
+  text-shadow: 0 1px 4px rgba(0,0,0,.5);
 }
 .cromo-num-badge {
-  font-size: .62rem;
-  font-weight: 700;
-  color: rgba(255,255,255,.9);
-  background: rgba(0,0,0,.22);
-  padding: 2px 6px;
+  font-size: .7rem;
+  font-weight: 800;
+  color: var(--gold);
+  background: rgba(0,0,0,.35);
+  padding: 2px 7px;
   border-radius: 6px;
+  letter-spacing: .5px;
 }
 
 /* Círculo central */
@@ -278,21 +285,22 @@ body {
   width: 52px;
   height: 52px;
   border-radius: 50%;
-  border: 2.5px solid var(--tc, #0d6b36);
-  color: var(--tc, #0d6b36);
+  border: 2px solid rgba(255,255,255,.2);
+  color: rgba(255,255,255,.55);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.1rem;
   font-weight: 800;
-  background: rgba(0,0,0,.03);
+  background: rgba(255,255,255,.05);
   transition: background .25s, border-color .25s, color .25s, font-size .15s;
 }
 .cromo-card.obtenido .cromo-circle {
-  background: var(--green);
-  border-color: var(--green);
-  color: white;
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #0e0e1a;
   font-size: 1.35rem;
+  box-shadow: 0 0 12px rgba(245,200,66,.5);
 }
 
 /* Nombre */
@@ -316,14 +324,14 @@ body {
   justify-content: space-between;
   padding: 5px 8px;
   border-top: 1px solid var(--border);
-  background: rgba(0,0,0,.02);
+  background: var(--card-2);
 }
 .cromo-card.obtenido .cromo-footer {
-  border-top-color: rgba(13,107,54,.18);
-  background: rgba(13,107,54,.04);
+  border-top-color: rgba(245,200,66,.2);
+  background: rgba(245,200,66,.05);
 }
 .obtenido-badge { font-size: .62rem; font-weight: 600; color: var(--text-sub); }
-.cromo-card.obtenido .obtenido-badge { color: var(--green); }
+.cromo-card.obtenido .obtenido-badge { color: var(--gold); }
 
 /* Repetidos solo visibles cuando el cromo está marcado como Tengo */
 .cromo-card:not(.obtenido) .rep-control { display: none; }
@@ -334,7 +342,7 @@ body {
   width: 17px; height: 17px;
   border: 1px solid var(--border);
   border-radius: 4px;
-  background: white;
+  background: var(--card);
   font-size: .72rem;
   font-weight: 700;
   cursor: pointer;
@@ -344,10 +352,10 @@ body {
   line-height: 1;
   padding: 0;
   transition: background .15s, border-color .15s, color .15s;
-  color: var(--text);
+  color: var(--text-sub);
 }
-.rep-btn:hover { background: var(--green); color: white; border-color: var(--green); }
-.rep-num { min-width: 14px; text-align: center; font-size: .65rem; font-weight: 700; color: var(--text); }
+.rep-btn:hover { background: var(--gold); color: #0e0e1a; border-color: var(--gold); }
+.rep-num { min-width: 14px; text-align: center; font-size: .65rem; font-weight: 700; color: var(--gold); }
 
 /* Foto del jugador — ocupa el hueco entre bandera y barra inferior */
 .cromo-foto { display: none; }
@@ -389,8 +397,8 @@ body {
   right: 6px;
   width: 22px;
   height: 22px;
-  background: var(--green);
-  color: white;
+  background: var(--gold);
+  color: #0e0e1a;
   border-radius: 50%;
   font-size: .72rem;
   font-weight: 800;
@@ -435,7 +443,7 @@ body {
   justify-content: space-between;
   margin-bottom: 12px;
   padding: 10px 14px;
-  background: white;
+  background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   cursor: pointer;
@@ -454,7 +462,7 @@ body {
 }
 .team-progress-fill {
   height: 100%;
-  background: var(--green);
+  background: linear-gradient(90deg, var(--gold-dark), var(--gold));
   border-radius: 3px;
   transition: width .4s ease;
 }
@@ -469,7 +477,7 @@ body {
 .stats-page { display: flex; flex-direction: column; gap: 16px; }
 
 .stats-hero {
-  background: linear-gradient(135deg, var(--green-dark) 0%, var(--green) 100%);
+  background: linear-gradient(135deg, #07070f 0%, #1a1a2e 100%);
   color: white;
   border-radius: 16px;
   padding: 28px 20px 22px;
@@ -506,24 +514,24 @@ body {
   gap: 10px;
 }
 .stat-card {
-  background: white;
+  background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 16px;
   text-align: center;
 }
-.stat-card-num { font-size: 1.8rem; font-weight: 800; color: var(--green); line-height: 1; }
+.stat-card-num { font-size: 1.8rem; font-weight: 800; color: var(--gold); line-height: 1; }
 .stat-card-num.red { color: var(--red); }
 .stat-card-num.gold { color: var(--gold); }
 .stat-card-label { font-size: .7rem; color: var(--text-sub); margin-top: 4px; text-transform: uppercase; letter-spacing: .5px; }
 
-.stats-teams { background: white; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.stats-teams { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
 .stats-teams-title {
   padding: 14px 16px;
   font-size: .9rem;
   font-weight: 700;
   border-bottom: 1px solid var(--border);
-  background: var(--bg);
+  background: var(--card-2);
 }
 .stats-team-row {
   display: flex;
@@ -534,8 +542,8 @@ body {
 }
 .stats-team-row:last-child { border-bottom: none; }
 .stats-team-name { font-size: .82rem; font-weight: 600; width: 140px; flex-shrink: 0; }
-.stats-team-bar { flex: 1; height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; }
-.stats-team-fill { height: 100%; background: var(--green); border-radius: 4px; transition: width .5s ease; }
+.stats-team-bar { flex: 1; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+.stats-team-fill { height: 100%; background: linear-gradient(90deg, var(--gold-dark), var(--gold)); border-radius: 4px; transition: width .5s ease; }
 .stats-team-nums { font-size: .75rem; color: var(--text-sub); width: 50px; text-align: right; white-space: nowrap; }
 
 /* ===== Empty state ===== */
@@ -566,7 +574,7 @@ body {
   white-space: nowrap;
 }
 .toast.show { transform: translateX(-50%) translateY(0); }
-.toast.green { background: var(--green); }
+.toast.green { background: var(--gold-dark); }
 .toast.red   { background: var(--red); }
 
 /* ===== FAB ===== */
@@ -577,21 +585,21 @@ body {
   width: 54px;
   height: 54px;
   border-radius: 50%;
-  background: var(--green);
-  color: white;
+  background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+  color: #0e0e1a;
   font-size: 1.6rem;
   font-weight: 300;
   line-height: 1;
   border: none;
   cursor: pointer;
-  box-shadow: 0 4px 18px rgba(13,107,54,.45);
+  box-shadow: 0 4px 18px rgba(245,200,66,.4);
   z-index: 200;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform .15s, background .15s, box-shadow .15s;
+  transition: transform .15s, box-shadow .15s;
 }
-.fab:hover  { background: var(--green-dark); transform: scale(1.07); box-shadow: 0 6px 22px rgba(13,107,54,.55); }
+.fab:hover  { transform: scale(1.07); box-shadow: 0 6px 24px rgba(245,200,66,.55); }
 .fab:active { transform: scale(.93); }
 
 /* ===== Modal overlay ===== */
@@ -618,7 +626,7 @@ body {
 
 /* ===== Modal panel ===== */
 .modal-panel {
-  background: white;
+  background: var(--card);
   width: 100%;
   max-width: 520px;
   border-radius: 20px 20px 0 0;
@@ -639,12 +647,12 @@ body {
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
-  background: white;
+  background: var(--card);
   z-index: 1;
 }
 .modal-title { font-size: 1rem; font-weight: 700; }
 .modal-close {
-  background: var(--bg);
+  background: var(--card-2);
   border: none;
   border-radius: 50%;
   width: 30px;
@@ -689,13 +697,13 @@ body {
   outline: none;
   font-family: inherit;
   color: var(--text);
-  background: white;
+  background: var(--card-2);
   transition: border-color .2s, box-shadow .2s;
 }
 .form-group input:focus,
 .form-group textarea:focus {
-  border-color: var(--green);
-  box-shadow: 0 0 0 3px rgba(13,107,54,.1);
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(245,200,66,.15);
 }
 .form-group textarea {
   resize: vertical;
@@ -711,7 +719,7 @@ body {
 /* ===== Preview list ===== */
 .preview-wrap {
   margin-top: 14px;
-  background: var(--bg);
+  background: var(--card-2);
   border: 1px solid var(--border);
   border-radius: 8px;
   overflow: hidden;
@@ -722,7 +730,7 @@ body {
   font-weight: 600;
   color: var(--text-sub);
   border-bottom: 1px solid var(--border);
-  background: white;
+  background: var(--card);
   text-transform: uppercase;
   letter-spacing: .4px;
 }
@@ -738,25 +746,25 @@ body {
   padding: 5px 12px;
 }
 .preview-item:not(:last-child) { border-bottom: 1px solid var(--border); }
-.preview-num   { font-weight: 700; color: var(--green); font-size: .8rem; min-width: 28px; }
+.preview-num   { font-weight: 700; color: var(--gold); font-size: .8rem; min-width: 28px; }
 .preview-nombre { font-size: .82rem; color: var(--text); }
 
 /* ===== Submit button ===== */
 .btn-submit {
   width: 100%;
   padding: 13px;
-  background: var(--green);
-  color: white;
+  background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+  color: #0e0e1a;
   border: none;
   border-radius: 10px;
   font-size: .95rem;
   font-weight: 700;
   cursor: pointer;
   margin-top: 16px;
-  transition: background .15s;
+  transition: opacity .15s, transform .1s;
   font-family: inherit;
 }
-.btn-submit:hover:not(:disabled) { background: var(--green-dark); }
+.btn-submit:hover:not(:disabled) { opacity: .88; transform: translateY(-1px); }
 .btn-submit:disabled { background: var(--border); color: var(--text-sub); cursor: default; }
 
 /* ===== Utility ===== */
