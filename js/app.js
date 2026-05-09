@@ -254,7 +254,8 @@ function renderEquipos(container) {
       const pct    = total > 0 ? Math.round(tengo / total * 100) : 0;
       return `
         <div class="team-section" data-equipo="${eq}">
-          <div class="team-header">
+          <div class="team-header team-toggle">
+            <span class="team-chevron">▼</span>
             <span class="team-name">${eq}</span>
             <div class="team-progress-wrap">
               <div class="team-progress-bar">
@@ -283,6 +284,12 @@ function renderEquipos(container) {
 
   container.innerHTML = header + content;
   bindCardEvents(container);
+  container.querySelectorAll('.team-toggle').forEach(header => {
+    header.addEventListener('click', e => {
+      if (e.target.closest('.btn-add-equipo-grupo')) return;
+      header.closest('.team-section').classList.toggle('collapsed');
+    });
+  });
   document.getElementById('btn-nuevo-equipo')?.addEventListener('click', () => openEquipoModal());
   container.querySelectorAll('.btn-add-equipo-grupo').forEach(btn => {
     btn.addEventListener('click', e => {

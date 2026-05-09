@@ -525,6 +525,16 @@ body {
 
 /* ===== Team section in "equipos" view ===== */
 .team-section { margin-bottom: 28px; }
+.team-toggle { cursor: pointer; }
+.team-chevron {
+  font-size: .65rem;
+  color: var(--text-sub);
+  transition: transform .22s ease;
+  flex-shrink: 0;
+}
+.team-section.collapsed .team-chevron { transform: rotate(-90deg); }
+.team-section.collapsed .cromos-grid,
+.team-section.collapsed .team-no-cromos { display: none; }
 .team-header {
   display: flex;
   align-items: center;
