@@ -3,7 +3,7 @@ const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* ===== State ===== */
 let allCromos = [];
-let currentView = 'todos';
+let currentView = 'inicio';
 let searchTerm  = '';
 let equipoFilter = '';
 
@@ -178,6 +178,7 @@ function populateEquipoSelect() {
 function renderCurrentView() {
   const content = document.getElementById('main-content');
   switch (currentView) {
+    case 'inicio':    renderInicio(content); break;
     case 'todos':     renderGrid(content, applySearch(allCromos), 'Todos los cromos'); break;
     case 'equipos':   renderEquipos(content); break;
     case 'faltan': {
@@ -330,6 +331,65 @@ function circularProgress(pct) {
         font-size="8.5"
         font-family="system-ui,-apple-system,sans-serif">completado</text>
     </svg>`;
+}
+
+/* ===== Inicio view ===== */
+function renderInicio(container) {
+  const total     = allCromos.length;
+  const tengo     = allCromos.filter(c => c.obtenido).length;
+  const faltan    = total - tengo;
+  const pct       = total > 0 ? Math.round(tengo / total * 100) : 0;
+  const repetidos = allCromos.filter(c => c.cd_repetidos > 0).length;
+
+  const equipos = [...new Set(allCromos.map(c => c.equipo))].sort();
+  const teamRows = equipos.map(eq => {
+    const cr  = allCromos.filter(c => c.equipo === eq);
+    const t   = cr.filter(c => c.obtenido).length;
+    const p   = Math.round(t / cr.length * 100);
+    const col = teamColor(eq);
+    return `
+      <div class="inicio-team-row">
+        <div class="inicio-team-dot" style="background:${col.bg}"></div>
+        <span class="inicio-team-name">${eq}</span>
+        <div class="inicio-team-bar">
+          <div class="inicio-team-fill" style="width:${p}%;background:${col.bg}"></div>
+        </div>
+        <span class="inicio-team-nums">${t}/${cr.length}</span>
+      </div>`;
+  }).join('');
+
+  container.innerHTML = `
+    <div class="inicio-page">
+      <div class="inicio-hero">
+        <div class="inicio-hero-info">
+          <div class="inicio-pct">${pct}<span class="inicio-pct-sign">%</span></div>
+          <div class="inicio-pct-label">del álbum completado</div>
+          <div class="inicio-hero-bar-wrap">
+            <div class="inicio-hero-bar" style="width:${pct}%"></div>
+          </div>
+          <div class="inicio-hero-count">${tengo} de ${total} cromos</div>
+        </div>
+        <img src="icons/copa.png" class="inicio-copa" alt="">
+      </div>
+      <div class="inicio-stats-row">
+        <div class="inicio-stat">
+          <div class="inicio-stat-num green">${tengo}</div>
+          <div class="inicio-stat-label">Obtenidos</div>
+        </div>
+        <div class="inicio-stat">
+          <div class="inicio-stat-num red">${faltan}</div>
+          <div class="inicio-stat-label">Sin obtener</div>
+        </div>
+        <div class="inicio-stat">
+          <div class="inicio-stat-num gold">${repetidos}</div>
+          <div class="inicio-stat-label">Repetidos</div>
+        </div>
+      </div>
+      <div class="section-title">Equipos</div>
+      <div class="inicio-teams-list">
+        ${teamRows}
+      </div>
+    </div>`;
 }
 
 /* ===== Stats view ===== */
