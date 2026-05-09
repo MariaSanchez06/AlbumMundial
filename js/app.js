@@ -55,6 +55,14 @@ function teamColor(equipo) {
   return TEAM_COLORS[equipo] || { bg: '#0d6b36', fg: '#ffffff' };
 }
 
+/* ===== Grupos predefinidos ===== */
+const PREDEFINED_GROUPS = [
+  'GRUPO A','GRUPO B','GRUPO C','GRUPO D',
+  'GRUPO E','GRUPO F','GRUPO G','GRUPO H',
+  'GRUPO I','GRUPO J','GRUPO K','GRUPO L',
+  'ESPECIALES'
+];
+
 /* ===== Grupos — localStorage ===== */
 function getGruposMap()    { try { return JSON.parse(localStorage.getItem('grupos_map') || '{}'); } catch { return {}; } }
 function saveGruposMap(m)  { localStorage.setItem('grupos_map', JSON.stringify(m)); }
@@ -221,26 +229,23 @@ function renderEquipos(container) {
     groups[g].push(eq);
   });
 
-  const sortedGroups = Object.keys(groups).sort((a, b) =>
-    a === 'Sin grupo' ? 1 : b === 'Sin grupo' ? -1 : a.localeCompare(b)
-  );
+  // Mostrar siempre los grupos predefinidos + los custom
+  const extraGroups = Object.keys(groups).filter(g => !PREDEFINED_GROUPS.includes(g) && g !== 'Sin grupo').sort();
+  const sortedGroups = [...PREDEFINED_GROUPS, ...extraGroups, ...(groups['Sin grupo'] ? ['Sin grupo'] : [])];
 
   const header = `
     <div class="equipos-header">
       <span class="section-title" style="margin-bottom:0">
         Equipos <span class="section-count">${allTeams.length}</span>
       </span>
-      <div style="display:flex;gap:8px">
-        <button class="btn-nuevo-equipo btn-outline" id="btn-add-grupo">+ Grupo</button>
-        <button class="btn-nuevo-equipo" id="btn-nuevo-equipo">+ Equipo</button>
-      </div>
+      <button class="btn-nuevo-equipo" id="btn-nuevo-equipo">+ Nuevo equipo</button>
     </div>`;
 
   const content = sortedGroups.map(grupo => {
     const equiposGrupo = filter
-      ? groups[grupo].filter(e => e === filter)
-      : groups[grupo];
-    if (equiposGrupo.length === 0) return '';
+      ? (groups[grupo] || []).filter(e => e === filter)
+      : (groups[grupo] || []);
+    if (filter && equiposGrupo.length === 0) return '';
 
     const sections = equiposGrupo.map(eq => {
       const cromos = allCromos.filter(c => c.equipo === eq);
@@ -268,15 +273,23 @@ function renderEquipos(container) {
 
     return `
       <div class="group-section">
-        <div class="group-header">${grupo}</div>
+        <div class="group-header">
+          <span>${grupo}</span>
+          <button class="btn-add-equipo-grupo" data-grupo="${grupo}">+ Añadir equipo</button>
+        </div>
         ${sections}
       </div>`;
   }).join('');
 
   container.innerHTML = header + content;
   bindCardEvents(container);
-  document.getElementById('btn-add-grupo')?.addEventListener('click', openGrupoModal);
-  document.getElementById('btn-nuevo-equipo')?.addEventListener('click', openEquipoModal);
+  document.getElementById('btn-nuevo-equipo')?.addEventListener('click', () => openEquipoModal());
+  container.querySelectorAll('.btn-add-equipo-grupo').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      openEquipoModal(btn.dataset.grupo);
+    });
+  });
 }
 
 /* ===== Circular progress SVG ===== */
@@ -693,17 +706,20 @@ function bindEquipoModal() {
   document.getElementById('btn-submit-equipo').addEventListener('click', submitEquipoModal);
 }
 
-function openEquipoModal() {
+function openEquipoModal(preselectedGrupo = '') {
   document.getElementById('modal-equipo-overlay').classList.add('open');
   document.getElementById('nuevo-equipo-nombre').value  = '';
   document.getElementById('nuevo-equipo-siglas').value  = '';
   document.getElementById('btn-submit-equipo').disabled = true;
-  // Poblar select con grupos existentes
   const sel = document.getElementById('equipo-grupo-select');
   const grupos = getAllGrupos();
   sel.innerHTML = '<option value="">— Selecciona un grupo —</option>' +
-    grupos.map(g => `<option value="${g}">${g}</option>`).join('');
-  setTimeout(() => document.getElementById('equipo-grupo-select').focus(), 80);
+    grupos.map(g => `<option value="${g}" ${g === preselectedGrupo ? 'selected' : ''}>${g}</option>`).join('');
+  checkEquipoSubmit();
+  const focusEl = preselectedGrupo
+    ? document.getElementById('nuevo-equipo-nombre')
+    : document.getElementById('equipo-grupo-select');
+  setTimeout(() => focusEl.focus(), 80);
 }
 
 function closeEquipoModal() {
@@ -713,7 +729,8 @@ function closeEquipoModal() {
 function getAllGrupos() {
   const fromMap  = Object.values(getGruposMap());
   const fromList = getGruposList();
-  return [...new Set([...fromList, ...fromMap])].sort();
+  const extra    = [...new Set([...fromList, ...fromMap])].filter(g => !PREDEFINED_GROUPS.includes(g)).sort();
+  return [...PREDEFINED_GROUPS, ...extra];
 }
 
 function checkEquipoSubmit() {
