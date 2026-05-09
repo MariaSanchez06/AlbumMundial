@@ -214,9 +214,9 @@ body {
   grid-template-columns: repeat(2, 1fr);
   gap: 12px;
 }
-@media (min-width: 480px)  { .cromos-grid { grid-template-columns: repeat(3, 1fr); } }
-@media (min-width: 700px)  { .cromos-grid { grid-template-columns: repeat(4, 1fr); } }
-@media (min-width: 900px)  { .cromos-grid { grid-template-columns: repeat(5, 1fr); } }
+@media (min-width: 540px)  { .cromos-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 800px)  { .cromos-grid { grid-template-columns: repeat(4, 1fr); } }
+@media (min-width: 1100px) { .cromos-grid { grid-template-columns: repeat(5, 1fr); } }
 
 /* ===== Cromo card ===== */
 .cromo-card {
