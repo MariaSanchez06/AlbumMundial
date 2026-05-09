@@ -154,6 +154,26 @@
     </div>
   </div>
 
+  <!-- Modal: borrar equipo -->
+  <div class="modal-overlay" id="modal-borrar-overlay">
+    <div class="modal-panel modal-panel-sm" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <span class="modal-title">Borrar equipo</span>
+        <button class="modal-close" id="modal-borrar-close" aria-label="Cerrar">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group" style="margin-bottom:14px">
+          <label for="borrar-equipo-select">Selecciona el equipo</label>
+          <select id="borrar-equipo-select">
+            <option value="">— Selecciona un equipo —</option>
+          </select>
+        </div>
+        <p class="form-hint" style="margin-bottom:14px">Se borrarán el equipo y todos sus cromos. Esta acción no se puede deshacer.</p>
+        <button class="btn-submit btn-submit-danger" id="btn-submit-borrar" disabled>Borrar equipo</button>
+      </div>
+    </div>
+  </div>
+
   <script src="js/supabase.min.js"></script>
   <script src="js/config.js"></script>
   <script src="js/app.js"></script>

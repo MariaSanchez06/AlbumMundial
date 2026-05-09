@@ -463,6 +463,29 @@ body {
   font-family: inherit;
 }
 .btn-nuevo-equipo:hover { background: var(--green-dark); transform: translateY(-1px); }
+.btn-nuevo-equipo-danger {
+  background: rgba(192,57,43,.1) !important;
+  color: var(--red) !important;
+  border: 1px solid rgba(192,57,43,.35);
+}
+.btn-nuevo-equipo-danger:hover { background: var(--red) !important; color: white !important; }
+
+.btn-submit-danger { background: var(--red) !important; }
+.btn-submit-danger:hover:not(:disabled) { background: #a93226 !important; }
+
+#borrar-equipo-select {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-size: .9rem;
+  background: white;
+  color: var(--text);
+  outline: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+#borrar-equipo-select:focus { border-color: var(--red); }
 
 .modal-panel-sm { max-width: 380px; }
 
