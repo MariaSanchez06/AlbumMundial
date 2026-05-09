@@ -1,4 +1,4 @@
-const CACHE = 'album-mundial-v1';
+const CACHE = 'album-mundial-v20';
 const SHELL = [
   './',
   './index.html',
@@ -8,6 +8,7 @@ const SHELL = [
   './js/config.js',
   './js/app.js',
   './icons/icon.svg',
+  './icons/copa.png',
 ];
 
 // Instalar: guarda el shell en caché

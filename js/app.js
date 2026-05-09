@@ -136,11 +136,13 @@ function bindNav() {
       btn.classList.add('active');
       currentView = btn.dataset.view;
       searchTerm  = '';
+      equipoFilter = '';
       document.getElementById('search-input').value = '';
+      document.getElementById('equipo-select').value = '';
       document.getElementById('search-container').style.display =
         ['todos', 'faltan', 'repetidos'].includes(currentView) ? '' : 'none';
       document.getElementById('equipo-select-container').style.display =
-        currentView === 'equipos' ? '' : 'none';
+        ['equipos', 'faltan'].includes(currentView) ? '' : 'none';
       renderCurrentView();
     });
   });
@@ -178,7 +180,12 @@ function renderCurrentView() {
   switch (currentView) {
     case 'todos':     renderGrid(content, applySearch(allCromos), 'Todos los cromos'); break;
     case 'equipos':   renderEquipos(content); break;
-    case 'faltan':    renderGrid(content, applySearch(allCromos.filter(c => !c.obtenido)), 'Me faltan'); break;
+    case 'faltan': {
+      let list = allCromos.filter(c => !c.obtenido);
+      if (equipoFilter) list = list.filter(c => c.equipo === equipoFilter);
+      renderGrid(content, applySearch(list), 'Sin obtener');
+      break;
+    }
     case 'repetidos': renderGrid(content, applySearch(allCromos.filter(c => c.cd_repetidos > 0)), 'Repetidos'); break;
     case 'stats':     renderStats(content); break;
   }
@@ -364,7 +371,7 @@ function renderStats(container) {
         </div>
         <div class="stat-card">
           <div class="stat-card-num">${tengo}</div>
-          <div class="stat-card-label">Tengo</div>
+          <div class="stat-card-label">Obtenido</div>
         </div>
         <div class="stat-card">
           <div class="stat-card-num red">${faltan}</div>
@@ -432,7 +439,7 @@ function cromoCard(c) {
         <div class="cromo-nombre">${c.nombre_jugador}</div>
       </div>
       <div class="cromo-footer">
-        <span class="obtenido-badge">${c.obtenido ? '✓ Tengo' : '○ Falta'}</span>
+        <span class="obtenido-badge">${c.obtenido ? '✓ Obtenido' : '○ Sin obtener'}</span>
         <div class="rep-control" title="Repetidos">
           <button class="rep-btn rep-minus" data-id="${c.id}">−</button>
           <span class="rep-num">${c.cd_repetidos}</span>
@@ -499,7 +506,7 @@ async function toggleObtenido(id, current, cardEl) {
 
   cardEl.dataset.obtenido = newVal;
   cardEl.classList.toggle('obtenido', newVal);
-  cardEl.querySelector('.obtenido-badge').textContent = newVal ? '✓ Tengo' : '○ Falta';
+  cardEl.querySelector('.obtenido-badge').textContent = newVal ? '✓ Obtenido' : '○ Sin obtener';
 
   // Actualiza el círculo central
   const circle = cardEl.querySelector('.cromo-circle');
