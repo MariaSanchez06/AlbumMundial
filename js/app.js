@@ -263,6 +263,7 @@ function renderEquipos(container) {
               <div class="team-pct">${tengo}/${total}</div>
             </div>
             <span style="color:var(--gold);font-weight:700">${pct}%</span>
+            <button class="btn-del-equipo" data-equipo="${eq}" title="Borrar equipo">🗑</button>
             <span class="team-chevron">▼</span>
           </div>
           ${total > 0
@@ -286,8 +287,14 @@ function renderEquipos(container) {
   bindCardEvents(container);
   container.querySelectorAll('.team-toggle').forEach(header => {
     header.addEventListener('click', e => {
-      if (e.target.closest('.btn-add-equipo-grupo')) return;
+      if (e.target.closest('.btn-add-equipo-grupo') || e.target.closest('.btn-del-equipo')) return;
       header.closest('.team-section').classList.toggle('collapsed');
+    });
+  });
+  container.querySelectorAll('.btn-del-equipo').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      deleteEquipo(btn.dataset.equipo);
     });
   });
   document.getElementById('btn-nuevo-equipo')?.addEventListener('click', () => openEquipoModal());
@@ -744,6 +751,25 @@ function checkEquipoSubmit() {
   const grupo  = document.getElementById('equipo-grupo-select').value.trim();
   const nombre = document.getElementById('nuevo-equipo-nombre').value.trim();
   document.getElementById('btn-submit-equipo').disabled = !(grupo && nombre);
+}
+
+async function deleteEquipo(equipo) {
+  if (!confirm(`¿Borrar "${equipo}" y todos sus cromos? Esta acción no se puede deshacer.`)) return;
+
+  const { error } = await db.from('cromos').delete().eq('equipo', equipo);
+  if (error) { showToast('Error al borrar: ' + error.message, 'red'); return; }
+
+  allCromos = allCromos.filter(c => c.equipo !== equipo);
+
+  const map = getGruposMap();
+  delete map[equipo];
+  saveGruposMap(map);
+  localStorage.setItem('equipos_reg', JSON.stringify(getRegisteredTeams().filter(t => t.equipo !== equipo)));
+
+  populateEquipoSelect();
+  updateHeaderStats();
+  showToast(`"${equipo}" borrado`, 'red');
+  renderCurrentView();
 }
 
 function submitEquipoModal() {

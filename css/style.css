@@ -527,6 +527,19 @@ body {
 /* ===== Team section in "equipos" view ===== */
 .team-section { margin-bottom: 28px; }
 .team-toggle { cursor: pointer; }
+.btn-del-equipo {
+  background: none;
+  border: none;
+  font-size: .85rem;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  opacity: .45;
+  transition: opacity .15s, background .15s;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.btn-del-equipo:hover { opacity: 1; background: rgba(192,57,43,.1); }
 .team-chevron {
   font-size: .65rem;
   color: var(--text-sub);
