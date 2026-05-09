@@ -305,10 +305,22 @@ function applyFoto(img) {
   visual.closest('.cromo-card').classList.add('has-foto');
 }
 
-/* ===== Image key: MEX_1 → images/players/MEX_1.jpg ===== */
+/* ===== Image key: MEX_1 → images/players/MEX_1.jpg/.png ===== */
 function cromoImageKey(c) {
   const prefix = (c.siglas && c.siglas.trim()) ? c.siglas.trim() : c.equipo.substring(0, 3);
   return `${prefix.toUpperCase()}_${c.numero}`;
+}
+function cromoImageSrc(c) {
+  return `images/players/${cromoImageKey(c)}.jpg`;
+}
+function onFotoError(img) {
+  const pngSrc = img.src.replace(/\.jpg$/i, '.png');
+  if (!img.src.endsWith('.png')) {
+    img.onerror = () => img.remove();
+    img.src = pngSrc;
+  } else {
+    img.remove();
+  }
 }
 
 /* ===== Cromo card HTML ===== */
@@ -317,7 +329,7 @@ function cromoCard(c) {
   const tag          = c.siglas || c.equipo.substring(0, 3);
   const circleStyle  = c.obtenido ? '' : `border-color:${col.bg};color:${col.bg}`;
   const circleContent = c.obtenido ? '✓' : c.numero;
-  const imgSrc       = `images/players/${cromoImageKey(c)}.jpg`;
+  const imgSrc       = cromoImageSrc(c);
 
   return `
     <div class="cromo-card ${c.obtenido ? 'obtenido' : ''}"
@@ -332,7 +344,7 @@ function cromoCard(c) {
              src="${imgSrc}"
              alt="${c.nombre_jugador}"
              onload="applyFoto(this)"
-             onerror="this.remove()">
+             onerror="onFotoError(this)">
         <div class="cromo-circle" style="${circleStyle}">${circleContent}</div>
       </div>
       <div class="cromo-info">
