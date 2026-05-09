@@ -9,16 +9,46 @@ let equipoFilter = '';
 
 /* ===== Team color map ===== */
 const TEAM_COLORS = {
-  'FWC':                 { bg: '#f0a500', fg: '#1a1a1a' },
-  'MEXICO':              { bg: '#006847', fg: '#ffffff' },
-  'BRASIL':              { bg: '#009c3b', fg: '#ffffff' },
-  'SUIZA':               { bg: '#ff0000', fg: '#ffffff' },
-  'QATAR':               { bg: '#8d153a', fg: '#ffffff' },
-  'CANADÁ':              { bg: '#ff0000', fg: '#ffffff' },
-  'BOSNIA-HERZEGOVINA':  { bg: '#003da5', fg: '#ffffff' },
-  'COREA DEL SUR':       { bg: '#003da5', fg: '#ffffff' },
-  'REPÚBLICA CHECA':     { bg: '#d7141a', fg: '#ffffff' },
-  'SUDÁFRICA':           { bg: '#007a4d', fg: '#ffffff' },
+  'FWC': {
+    bg: '#f0a500',
+    banner: 'linear-gradient(90deg, #032979 50%, #f0a500 50%)'
+  },
+  'MEXICO': {
+    bg: '#006847',
+    banner: 'linear-gradient(90deg, #006847 33.3%, #ffffff 33.3%, #ffffff 66.6%, #ce1126 66.6%)'
+  },
+  'BRASIL': {
+    bg: '#009c3b',
+    banner: 'linear-gradient(90deg, #009c3b 25%, #ffdf00 25%, #ffdf00 75%, #009c3b 75%)'
+  },
+  'SUIZA': {
+    bg: '#ff0000',
+    banner: 'linear-gradient(90deg, #ff0000 35%, #ffffff 35%, #ffffff 65%, #ff0000 65%)'
+  },
+  'QATAR': {
+    bg: '#8d153a',
+    banner: 'linear-gradient(90deg, #8d153a 65%, #ffffff 65%)'
+  },
+  'CANADÁ': {
+    bg: '#ff0000',
+    banner: 'linear-gradient(90deg, #ff0000 25%, #ffffff 25%, #ffffff 75%, #ff0000 75%)'
+  },
+  'BOSNIA-HERZEGOVINA': {
+    bg: '#003da5',
+    banner: 'linear-gradient(90deg, #003da5 60%, #ffcc00 60%)'
+  },
+  'COREA DEL SUR': {
+    bg: '#c60c30',
+    banner: 'linear-gradient(90deg, #ffffff 20%, #c60c30 20%, #c60c30 55%, #003478 55%, #ffffff 80%)'
+  },
+  'REPÚBLICA CHECA': {
+    bg: '#d7141a',
+    banner: 'linear-gradient(90deg, #ffffff 33%, #d7141a 33%, #d7141a 66%, #11457e 66%)'
+  },
+  'SUDÁFRICA': {
+    bg: '#007a4d',
+    banner: 'linear-gradient(90deg, #007a4d 20%, #000000 20%, #000000 35%, #ffb612 35%, #ffb612 65%, #de3831 65%, #de3831 80%, #002395 80%)'
+  },
 };
 
 function teamColor(equipo) {
@@ -258,24 +288,42 @@ function renderStats(container) {
     </div>`;
 }
 
+/* ===== Aplica la foto como fondo de toda la tarjeta ===== */
+function applyFoto(img) {
+  img.style.display = 'block';
+  const visual = img.closest('.cromo-visual');
+  visual.classList.add('has-foto');
+  visual.closest('.cromo-card').classList.add('has-foto');
+}
+
+/* ===== Image key: MEX_1 → images/players/MEX_1.jpg ===== */
+function cromoImageKey(c) {
+  const prefix = (c.siglas && c.siglas.trim()) ? c.siglas.trim() : c.equipo.substring(0, 3);
+  return `${prefix.toUpperCase()}_${c.numero}`;
+}
+
 /* ===== Cromo card HTML ===== */
 function cromoCard(c) {
-  const col     = teamColor(c.equipo);
-  const tag     = c.siglas || c.equipo.substring(0, 3);
-  const circleStyle = c.obtenido
-    ? ''
-    : `border-color:${col.bg};color:${col.bg}`;
+  const col          = teamColor(c.equipo);
+  const tag          = c.siglas || c.equipo.substring(0, 3);
+  const circleStyle  = c.obtenido ? '' : `border-color:${col.bg};color:${col.bg}`;
   const circleContent = c.obtenido ? '✓' : c.numero;
+  const imgSrc       = `images/players/${cromoImageKey(c)}.jpg`;
 
   return `
     <div class="cromo-card ${c.obtenido ? 'obtenido' : ''}"
          style="--tc:${col.bg}"
          data-id="${c.id}" data-obtenido="${c.obtenido}" data-rep="${c.cd_repetidos}">
-      <div class="cromo-banner">
+      <div class="cromo-banner" style="background-image:linear-gradient(rgba(0,0,0,.28),rgba(0,0,0,.28)),${col.banner || 'linear-gradient(90deg,'+col.bg+','+col.bg+')'}">
         <span class="cromo-tag">${tag}</span>
         <span class="cromo-num-badge">#${c.numero}</span>
       </div>
       <div class="cromo-visual">
+        <img class="cromo-foto"
+             src="${imgSrc}"
+             alt="${c.nombre_jugador}"
+             onload="applyFoto(this)"
+             onerror="this.remove()">
         <div class="cromo-circle" style="${circleStyle}">${circleContent}</div>
       </div>
       <div class="cromo-info">
@@ -294,6 +342,17 @@ function cromoCard(c) {
 
 /* ===== Card events ===== */
 function bindCardEvents(container) {
+  // Animación de entrada escalonada
+  container.querySelectorAll('.cromo-card').forEach((card, i) => {
+    card.style.setProperty('--delay', `${Math.min(i * 35, 400)}ms`);
+  });
+
+  // Imágenes ya cacheadas: onload no se dispara, aplicamos manualmente
+  container.querySelectorAll('.cromo-foto').forEach(img => {
+    if (img.complete && img.naturalHeight > 0) applyFoto(img);
+    else if (img.complete) img.remove(); // 404 cacheado
+  });
+
   container.querySelectorAll('.cromo-card').forEach(card => {
     card.addEventListener('click', async (e) => {
       if (e.target.classList.contains('rep-btn')) return;
