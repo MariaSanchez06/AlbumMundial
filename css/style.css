@@ -473,6 +473,31 @@ body {
 }
 .btn-nuevo-equipo:hover { opacity: .88; transform: translateY(-1px); }
 
+/* ===== Group sections ===== */
+.group-section { margin-bottom: 32px; }
+.group-header {
+  font-size: .7rem;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--gold);
+  padding: 6px 12px;
+  margin-bottom: 12px;
+  border-left: 3px solid var(--gold);
+  background: rgba(245,200,66,.07);
+  border-radius: 0 8px 8px 0;
+}
+
+.team-no-cromos {
+  text-align: center;
+  padding: 18px 12px;
+  font-size: .78rem;
+  color: var(--text-sub);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 8px;
+}
+
 /* ===== Team section in "equipos" view ===== */
 .team-section { margin-bottom: 28px; }
 .team-header {

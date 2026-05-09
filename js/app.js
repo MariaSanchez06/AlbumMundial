@@ -55,6 +55,25 @@ function teamColor(equipo) {
   return TEAM_COLORS[equipo] || { bg: '#0d6b36', fg: '#ffffff' };
 }
 
+/* ===== Grupos — localStorage ===== */
+function getGruposMap()    { try { return JSON.parse(localStorage.getItem('grupos_map') || '{}'); } catch { return {}; } }
+function saveGruposMap(m)  { localStorage.setItem('grupos_map', JSON.stringify(m)); }
+function getRegisteredTeams() { try { return JSON.parse(localStorage.getItem('equipos_reg') || '[]'); } catch { return []; } }
+function saveRegisteredTeam(equipo, siglas, grupo) {
+  const teams = getRegisteredTeams().filter(t => t.equipo !== equipo);
+  teams.push({ equipo, siglas, grupo });
+  localStorage.setItem('equipos_reg', JSON.stringify(teams));
+  const map = getGruposMap();
+  if (grupo) map[equipo] = grupo; else delete map[equipo];
+  saveGruposMap(map);
+}
+function populateGruposDatalist() {
+  const dl = document.getElementById('grupos-datalist');
+  if (!dl) return;
+  const grupos = [...new Set(Object.values(getGruposMap()))].sort();
+  dl.innerHTML = grupos.map(g => `<option value="${g}">`).join('');
+}
+
 /* ===== Entry point ===== */
 document.addEventListener('DOMContentLoaded', async () => {
   if (SUPABASE_URL === 'TU_SUPABASE_URL') {
@@ -186,39 +205,70 @@ function renderGrid(container, cromos, title) {
 
 /* ===== Equipos view ===== */
 function renderEquipos(container) {
-  const equipos = [...new Set(allCromos.map(c => c.equipo))].sort();
-  const filter  = equipoFilter;
-  const list    = filter ? equipos.filter(e => e === filter) : equipos;
+  const gruposMap = getGruposMap();
+  const regTeams  = getRegisteredTeams();
+  const filter    = equipoFilter;
+
+  const teamsFromDB = [...new Set(allCromos.map(c => c.equipo))];
+  const allTeams    = [...new Set([...teamsFromDB, ...regTeams.map(t => t.equipo)])].sort();
+
+  const groups = {};
+  allTeams.forEach(eq => {
+    const g = gruposMap[eq] || 'Sin grupo';
+    if (!groups[g]) groups[g] = [];
+    groups[g].push(eq);
+  });
+
+  const sortedGroups = Object.keys(groups).sort((a, b) =>
+    a === 'Sin grupo' ? 1 : b === 'Sin grupo' ? -1 : a.localeCompare(b)
+  );
 
   const header = `
     <div class="equipos-header">
       <span class="section-title" style="margin-bottom:0">
-        Equipos <span class="section-count">${equipos.length}</span>
+        Equipos <span class="section-count">${allTeams.length}</span>
       </span>
       <button class="btn-nuevo-equipo" id="btn-nuevo-equipo">+ Nuevo equipo</button>
     </div>`;
 
-  container.innerHTML = header + list.map(eq => {
-    const cromos  = allCromos.filter(c => c.equipo === eq);
-    const tengo   = cromos.filter(c => c.obtenido).length;
-    const pct     = Math.round(tengo / cromos.length * 100);
-    return `
-      <div class="team-section" data-equipo="${eq}">
-        <div class="team-header">
-          <span class="team-name">${eq}</span>
-          <div class="team-progress-wrap">
-            <div class="team-progress-bar">
-              <div class="team-progress-fill" style="width:${pct}%"></div>
+  const content = sortedGroups.map(grupo => {
+    const equiposGrupo = filter
+      ? groups[grupo].filter(e => e === filter)
+      : groups[grupo];
+    if (equiposGrupo.length === 0) return '';
+
+    const sections = equiposGrupo.map(eq => {
+      const cromos = allCromos.filter(c => c.equipo === eq);
+      const tengo  = cromos.filter(c => c.obtenido).length;
+      const total  = cromos.length;
+      const pct    = total > 0 ? Math.round(tengo / total * 100) : 0;
+      return `
+        <div class="team-section" data-equipo="${eq}">
+          <div class="team-header">
+            <span class="team-name">${eq}</span>
+            <div class="team-progress-wrap">
+              <div class="team-progress-bar">
+                <div class="team-progress-fill" style="width:${pct}%"></div>
+              </div>
+              <div class="team-pct">${tengo}/${total}</div>
             </div>
-            <div class="team-pct">${tengo}/${cromos.length}</div>
+            <span style="color:var(--gold);font-weight:700">${pct}%</span>
           </div>
-          <span style="color:var(--green);font-weight:700">${pct}%</span>
-        </div>
-        <div class="cromos-grid">
-          ${cromos.map(cromoCard).join('')}
-        </div>
+          ${total > 0
+            ? `<div class="cromos-grid">${cromos.map(cromoCard).join('')}</div>`
+            : `<div class="team-no-cromos">Sin cromos todavía — pulsa "Nuevo equipo" para añadir</div>`
+          }
+        </div>`;
+    }).join('');
+
+    return `
+      <div class="group-section">
+        <div class="group-header">${grupo}</div>
+        ${sections}
       </div>`;
   }).join('');
+
+  container.innerHTML = header + content;
   bindCardEvents(container);
   document.getElementById('btn-nuevo-equipo')?.addEventListener('click', openModal);
 }
@@ -519,6 +569,7 @@ function bindModal() {
     if (e.key === 'Escape') closeModal();
   });
 
+  document.getElementById('modal-grupo').addEventListener('input', updateSubmitBtn);
   document.getElementById('modal-equipo').addEventListener('input', onModalEquipoChange);
   document.getElementById('modal-jugadores').addEventListener('input', updateModalPreview);
   document.getElementById('modal-desde').addEventListener('input', updateModalPreview);
@@ -528,13 +579,15 @@ function bindModal() {
 function openModal() {
   const overlay = document.getElementById('modal-overlay');
   overlay.classList.add('open');
-  document.getElementById('modal-equipo').value    = '';
-  document.getElementById('modal-siglas').value    = '';
-  document.getElementById('modal-desde').value     = '1';
-  document.getElementById('modal-jugadores').value = '';
+  document.getElementById('modal-grupo').value      = '';
+  document.getElementById('modal-equipo').value     = '';
+  document.getElementById('modal-siglas').value     = '';
+  document.getElementById('modal-desde').value      = '1';
+  document.getElementById('modal-jugadores').value  = '';
   document.getElementById('modal-preview').innerHTML = '';
-  updateSubmitBtn(0);
-  setTimeout(() => document.getElementById('modal-equipo').focus(), 80);
+  populateGruposDatalist();
+  updateSubmitBtn();
+  setTimeout(() => document.getElementById('modal-grupo').focus(), 80);
 }
 
 function closeModal() {
@@ -543,8 +596,14 @@ function closeModal() {
 
 function onModalEquipoChange() {
   const equipo = this.value.trim().toUpperCase();
-  const existentes = allCromos.filter(c => c.equipo === equipo);
 
+  // Auto-rellenar grupo si ya tiene uno asignado
+  const grupoField = document.getElementById('modal-grupo');
+  if (!grupoField.value.trim()) {
+    grupoField.value = getGruposMap()[equipo] || '';
+  }
+
+  const existentes = allCromos.filter(c => c.equipo === equipo);
   if (existentes.length > 0) {
     const siglasInput = document.getElementById('modal-siglas');
     if (!siglasInput.value.trim()) {
@@ -572,7 +631,7 @@ function updateModalPreview() {
 
   if (lines.length === 0) {
     wrap.innerHTML = '';
-    updateSubmitBtn(0);
+    updateSubmitBtn();
     return;
   }
 
@@ -587,27 +646,47 @@ function updateModalPreview() {
           </div>`).join('')}
       </div>
     </div>`;
-  updateSubmitBtn(lines.length);
+  updateSubmitBtn();
 }
 
-function updateSubmitBtn(count) {
-  const btn = document.getElementById('modal-submit');
-  if (count > 0) {
-    btn.textContent = `Añadir ${count} cromo${count !== 1 ? 's' : ''}`;
-    btn.disabled = false;
-  } else {
+function updateSubmitBtn() {
+  const btn    = document.getElementById('modal-submit');
+  const equipo = document.getElementById('modal-equipo').value.trim();
+  const grupo  = document.getElementById('modal-grupo').value.trim();
+  const lines  = getJugadoresLines();
+  if (!equipo || !grupo) {
     btn.textContent = 'Añadir cromos';
     btn.disabled = true;
+    return;
+  }
+  if (lines.length === 0) {
+    btn.textContent = 'Registrar equipo';
+    btn.disabled = false;
+  } else {
+    btn.textContent = `Añadir ${lines.length} cromo${lines.length !== 1 ? 's' : ''}`;
+    btn.disabled = false;
   }
 }
 
 async function submitModal() {
   const equipo = document.getElementById('modal-equipo').value.trim().toUpperCase();
   const siglas = document.getElementById('modal-siglas').value.trim().toUpperCase();
+  const grupo  = document.getElementById('modal-grupo').value.trim().toUpperCase();
   const desde  = parseInt(document.getElementById('modal-desde').value) || 1;
   const lines  = getJugadoresLines();
 
-  if (!equipo || lines.length === 0) return;
+  if (!equipo || !grupo) return;
+
+  // Siempre registra el equipo en su grupo
+  saveRegisteredTeam(equipo, siglas, grupo);
+
+  // Si no hay jugadores, solo registrar el equipo
+  if (lines.length === 0) {
+    closeModal();
+    showToast(`✓ ${equipo} registrado en ${grupo}`, 'green');
+    document.querySelector('[data-view="equipos"]').click();
+    return;
+  }
 
   const btn = document.getElementById('modal-submit');
   btn.disabled = true;
@@ -626,11 +705,10 @@ async function submitModal() {
 
   if (error) {
     showToast('Error: ' + (error.message || 'no se pudo guardar'), 'red');
-    updateSubmitBtn(lines.length);
+    updateSubmitBtn();
     return;
   }
 
-  // Actualiza estado local
   allCromos.push(...data);
   allCromos.sort((a, b) => a.equipo.localeCompare(b.equipo, 'es') || a.numero - b.numero);
 
@@ -639,7 +717,6 @@ async function submitModal() {
   closeModal();
   showToast(`✓ ${data.length} cromo${data.length !== 1 ? 's' : ''} añadido${data.length !== 1 ? 's' : ''}`, 'green');
 
-  // Navega a la vista Equipos con el equipo recién añadido seleccionado
   document.querySelector('[data-view="equipos"]').click();
   const sel = document.getElementById('equipo-select');
   sel.value = equipo;

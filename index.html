@@ -80,9 +80,16 @@
       </div>
       <div class="modal-body">
 
+        <div class="form-group" style="margin-bottom:14px">
+          <label for="modal-grupo">Grupo *</label>
+          <input type="text" id="modal-grupo" placeholder="ej: GRUPO A"
+                 list="grupos-datalist" autocomplete="off">
+          <datalist id="grupos-datalist"></datalist>
+        </div>
+
         <div class="form-row">
           <div class="form-group" style="flex:2">
-            <label for="modal-equipo">Equipo</label>
+            <label for="modal-equipo">Equipo *</label>
             <input type="text" id="modal-equipo" placeholder="ej: ARGENTINA"
                    list="equipos-datalist" autocomplete="off">
             <datalist id="equipos-datalist"></datalist>
