@@ -184,24 +184,45 @@ function renderEquipos(container) {
   bindCardEvents(container);
 }
 
+/* ===== Circular progress SVG ===== */
+function circularProgress(pct) {
+  const r    = 42;
+  const circ = +(2 * Math.PI * r).toFixed(2);
+  const off  = +(circ * (1 - pct / 100)).toFixed(2);
+  return `
+    <svg class="donut-svg" viewBox="0 0 100 100" width="148" height="148">
+      <circle cx="50" cy="50" r="${r}" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="9"/>
+      <circle cx="50" cy="50" r="${r}" fill="none" stroke="var(--gold)" stroke-width="9"
+        stroke-dasharray="${circ}" stroke-dashoffset="${off}"
+        stroke-linecap="round" transform="rotate(-90 50 50)"
+        style="transition:stroke-dashoffset .9s ease"/>
+      <text x="50" y="46" text-anchor="middle" fill="white"
+        font-size="19" font-weight="800"
+        font-family="system-ui,-apple-system,sans-serif">${pct}%</text>
+      <text x="50" y="62" text-anchor="middle" fill="rgba(255,255,255,.65)"
+        font-size="8.5"
+        font-family="system-ui,-apple-system,sans-serif">completado</text>
+    </svg>`;
+}
+
 /* ===== Stats view ===== */
 function renderStats(container) {
-  const total   = allCromos.length;
-  const tengo   = allCromos.filter(c => c.obtenido).length;
-  const faltan  = total - tengo;
-  const reps    = allCromos.filter(c => c.cd_repetidos > 0).length;
-  const pct     = total > 0 ? Math.round(tengo / total * 100) : 0;
+  const total  = allCromos.length;
+  const tengo  = allCromos.filter(c => c.obtenido).length;
+  const faltan = total - tengo;
+  const pct    = total > 0 ? Math.round(tengo / total * 100) : 0;
 
-  const equipos = [...new Set(allCromos.map(c => c.equipo))].sort();
+  const equipos  = [...new Set(allCromos.map(c => c.equipo))].sort();
   const teamRows = equipos.map(eq => {
     const cr = allCromos.filter(c => c.equipo === eq);
     const t  = cr.filter(c => c.obtenido).length;
     const p  = Math.round(t / cr.length * 100);
+    const col = teamColor(eq);
     return `
       <div class="stats-team-row">
         <span class="stats-team-name">${eq}</span>
         <div class="stats-team-bar">
-          <div class="stats-team-fill" style="width:${p}%"></div>
+          <div class="stats-team-fill" style="width:${p}%;background:${col.bg}"></div>
         </div>
         <span class="stats-team-nums">${t}/${cr.length}</span>
       </div>`;
@@ -210,8 +231,7 @@ function renderStats(container) {
   container.innerHTML = `
     <div class="stats-page">
       <div class="stats-hero">
-        <div class="stats-hero-num">${pct}%</div>
-        <div class="stats-hero-label">completado</div>
+        ${circularProgress(pct)}
         <div class="stats-hero-sub">
           <span>🏆 ${tengo} obtenidos</span>
           <span>❌ ${faltan} faltan</span>
@@ -240,15 +260,25 @@ function renderStats(container) {
 
 /* ===== Cromo card HTML ===== */
 function cromoCard(c) {
-  const col = teamColor(c.equipo);
-  const tagStyle = `background:${col.bg};color:${col.fg}`;
+  const col     = teamColor(c.equipo);
+  const tag     = c.siglas || c.equipo.substring(0, 3);
+  const circleStyle = c.obtenido
+    ? ''
+    : `border-color:${col.bg};color:${col.bg}`;
+  const circleContent = c.obtenido ? '✓' : c.numero;
+
   return `
-    <div class="cromo-card ${c.obtenido ? 'obtenido' : ''}" data-id="${c.id}" data-obtenido="${c.obtenido}" data-rep="${c.cd_repetidos}">
-      <div class="cromo-top">
-        <span class="cromo-equipo-tag" style="${tagStyle}">${c.siglas || c.equipo.substring(0,3)}</span>
-        <span class="cromo-numero">#${c.numero}</span>
+    <div class="cromo-card ${c.obtenido ? 'obtenido' : ''}"
+         style="--tc:${col.bg}"
+         data-id="${c.id}" data-obtenido="${c.obtenido}" data-rep="${c.cd_repetidos}">
+      <div class="cromo-banner">
+        <span class="cromo-tag">${tag}</span>
+        <span class="cromo-num-badge">#${c.numero}</span>
       </div>
-      <div class="cromo-body">
+      <div class="cromo-visual">
+        <div class="cromo-circle" style="${circleStyle}">${circleContent}</div>
+      </div>
+      <div class="cromo-info">
         <div class="cromo-nombre">${c.nombre_jugador}</div>
       </div>
       <div class="cromo-footer">
@@ -257,7 +287,6 @@ function cromoCard(c) {
           <button class="rep-btn rep-minus" data-id="${c.id}">−</button>
           <span class="rep-num">${c.cd_repetidos}</span>
           <button class="rep-btn rep-plus" data-id="${c.id}">+</button>
-          <span class="rep-label" style="color:var(--text-sub);font-size:.6rem">rep</span>
         </div>
       </div>
     </div>`;
@@ -310,6 +339,25 @@ async function toggleObtenido(id, current, cardEl) {
   cardEl.dataset.obtenido = newVal;
   cardEl.classList.toggle('obtenido', newVal);
   cardEl.querySelector('.obtenido-badge').textContent = newVal ? '✓ Tengo' : '○ Falta';
+
+  // Actualiza el círculo central
+  const circle = cardEl.querySelector('.cromo-circle');
+  if (circle) {
+    const col = teamColor(cromo.equipo);
+    if (newVal) {
+      circle.style.cssText = '';
+      circle.textContent   = '✓';
+    } else {
+      circle.style.cssText = `border-color:${col.bg};color:${col.bg}`;
+      circle.textContent   = cromo.numero;
+    }
+  }
+
+  // Animación pop
+  cardEl.classList.remove('pop');
+  void cardEl.offsetWidth;
+  cardEl.classList.add('pop');
+  cardEl.addEventListener('animationend', () => cardEl.classList.remove('pop'), { once: true });
 
   updateHeaderStats();
   showToast(newVal ? '✓ Cromo marcado como obtenido' : '○ Marcado como faltante', newVal ? 'green' : '');
