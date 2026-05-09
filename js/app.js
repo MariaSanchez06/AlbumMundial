@@ -763,6 +763,7 @@ function bindBorrarModal() {
   document.getElementById('btn-submit-borrar').addEventListener('click', async () => {
     const equipo = document.getElementById('borrar-equipo-select').value;
     if (!equipo) return;
+    if (!confirm(`¿Borrar "${equipo}" y todos sus cromos? Esta acción no se puede deshacer.`)) return;
     closeBorrarModal();
     await deleteEquipo(equipo);
   });
