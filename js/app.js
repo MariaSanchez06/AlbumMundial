@@ -255,7 +255,6 @@ function renderEquipos(container) {
       return `
         <div class="team-section" data-equipo="${eq}">
           <div class="team-header team-toggle">
-            <span class="team-chevron">▼</span>
             <span class="team-name">${eq}</span>
             <div class="team-progress-wrap">
               <div class="team-progress-bar">
@@ -264,6 +263,7 @@ function renderEquipos(container) {
               <div class="team-pct">${tengo}/${total}</div>
             </div>
             <span style="color:var(--gold);font-weight:700">${pct}%</span>
+            <span class="team-chevron">▼</span>
           </div>
           ${total > 0
             ? `<div class="cromos-grid">${cromos.map(cromoCard).join('')}</div>`
