@@ -244,7 +244,7 @@ body {
 
 /* Banner con colores de bandera */
 .cromo-banner {
-  height: 50px;
+  height: 40px;
   background-color: #0d6b36;
   display: flex;
   align-items: center;
@@ -272,18 +272,18 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 12px 8px 6px;
+  padding: 8px 8px 4px;
 }
 .cromo-circle {
-  width: 64px;
-  height: 64px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   border: 2.5px solid var(--tc, #0d6b36);
   color: var(--tc, #0d6b36);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 800;
   background: rgba(0,0,0,.03);
   transition: background .25s, border-color .25s, color .25s, font-size .15s;
@@ -292,16 +292,16 @@ body {
   background: var(--green);
   border-color: var(--green);
   color: white;
-  font-size: 1.6rem;
+  font-size: 1.35rem;
 }
 
 /* Nombre */
-.cromo-info { padding: 6px 8px 10px; text-align: center; }
+.cromo-info { padding: 4px 8px 6px; text-align: center; }
 .cromo-nombre {
   font-size: .82rem;
   font-weight: 800;
-  line-height: 1.25;
-  min-height: 30px;
+  line-height: 1.2;
+  min-height: 22px;
   color: var(--text);
   display: flex;
   align-items: center;
@@ -356,7 +356,7 @@ body {
 
 .cromo-visual.has-foto {
   padding: 0;
-  height: 130px;
+  height: 100px;
   overflow: hidden;
 }
 .cromo-visual.has-foto .cromo-foto {
