@@ -212,7 +212,7 @@ body {
 .cromos-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
+  gap: 12px;
 }
 @media (min-width: 480px)  { .cromos-grid { grid-template-columns: repeat(3, 1fr); } }
 @media (min-width: 700px)  { .cromos-grid { grid-template-columns: repeat(4, 1fr); } }
@@ -242,11 +242,10 @@ body {
   box-shadow: 0 4px 16px rgba(13,107,54,.2);
 }
 
-/* Banner de color del equipo */
+/* Banner con colores de bandera */
 .cromo-banner {
-  height: 44px;
-  background-color: var(--tc, #0d6b36);
-  background-image: linear-gradient(135deg, transparent 0%, rgba(0,0,0,.18) 100%);
+  height: 50px;
+  background-color: #0d6b36;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -276,15 +275,15 @@ body {
   padding: 12px 8px 6px;
 }
 .cromo-circle {
-  width: 54px;
-  height: 54px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
   border: 2.5px solid var(--tc, #0d6b36);
   color: var(--tc, #0d6b36);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.1rem;
+  font-size: 1.25rem;
   font-weight: 800;
   background: rgba(0,0,0,.03);
   transition: background .25s, border-color .25s, color .25s, font-size .15s;
@@ -293,20 +292,21 @@ body {
   background: var(--green);
   border-color: var(--green);
   color: white;
-  font-size: 1.4rem;
+  font-size: 1.6rem;
 }
 
 /* Nombre */
-.cromo-info { padding: 5px 8px 8px; text-align: center; }
+.cromo-info { padding: 6px 8px 10px; text-align: center; }
 .cromo-nombre {
-  font-size: .72rem;
-  font-weight: 700;
+  font-size: .82rem;
+  font-weight: 800;
   line-height: 1.25;
   min-height: 30px;
   color: var(--text);
   display: flex;
   align-items: center;
   justify-content: center;
+  letter-spacing: .3px;
 }
 
 /* Footer */
@@ -324,6 +324,10 @@ body {
 }
 .obtenido-badge { font-size: .62rem; font-weight: 600; color: var(--text-sub); }
 .cromo-card.obtenido .obtenido-badge { color: var(--green); }
+
+/* Repetidos solo visibles cuando el cromo está marcado como Tengo */
+.cromo-card:not(.obtenido) .rep-control { display: none; }
+.cromo-card:not(.obtenido) .cromo-footer { justify-content: center; }
 
 .rep-control { display: flex; align-items: center; gap: 3px; }
 .rep-btn {
@@ -344,6 +348,57 @@ body {
 }
 .rep-btn:hover { background: var(--green); color: white; border-color: var(--green); }
 .rep-num { min-width: 14px; text-align: center; font-size: .65rem; font-weight: 700; color: var(--text); }
+
+/* Foto del jugador — ocupa el hueco entre bandera y barra inferior */
+.cromo-foto { display: none; }
+
+.cromo-visual { position: relative; }
+
+.cromo-visual.has-foto {
+  padding: 0;
+  height: 130px;
+  overflow: hidden;
+}
+.cromo-visual.has-foto .cromo-foto {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center center;
+  background: white;
+}
+.cromo-visual.has-foto .cromo-circle { display: none; }
+
+/* Nombre debajo de la foto (sin overlay) */
+.cromo-card.has-foto .cromo-info {
+  padding: 6px 8px 10px;
+}
+.cromo-card.has-foto .cromo-nombre {
+  font-size: .88rem;
+  font-weight: 900;
+  color: var(--text);
+  text-shadow: none;
+  letter-spacing: .4px;
+  min-height: 22px;
+}
+
+/* Badge ✓ sobre la foto cuando está obtenido */
+.cromo-card.obtenido .cromo-visual.has-foto::after {
+  content: '✓';
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 22px;
+  height: 22px;
+  background: var(--green);
+  color: white;
+  border-radius: 50%;
+  font-size: .72rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,.3);
+}
 
 /* Animación al marcar */
 @keyframes card-pop {
