@@ -528,18 +528,20 @@ body {
 .team-section { margin-bottom: 28px; }
 .team-toggle { cursor: pointer; }
 .btn-del-equipo {
-  background: none;
-  border: none;
-  font-size: .85rem;
+  background: rgba(192,57,43,.1);
+  border: 1px solid rgba(192,57,43,.3);
+  color: var(--red);
+  font-size: .78rem;
   cursor: pointer;
-  padding: 2px 4px;
-  border-radius: 4px;
-  opacity: .45;
-  transition: opacity .15s, background .15s;
+  padding: 3px 8px;
+  border-radius: 6px;
+  transition: background .15s, border-color .15s;
   line-height: 1;
   flex-shrink: 0;
+  font-family: inherit;
+  font-weight: 600;
 }
-.btn-del-equipo:hover { opacity: 1; background: rgba(192,57,43,.1); }
+.btn-del-equipo:hover { background: var(--red); color: white; border-color: var(--red); }
 .team-chevron {
   font-size: .65rem;
   color: var(--text-sub);

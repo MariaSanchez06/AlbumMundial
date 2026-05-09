@@ -263,7 +263,7 @@ function renderEquipos(container) {
               <div class="team-pct">${tengo}/${total}</div>
             </div>
             <span style="color:var(--gold);font-weight:700">${pct}%</span>
-            <button class="btn-del-equipo" data-equipo="${eq}" title="Borrar equipo">🗑</button>
+            <button class="btn-del-equipo" data-equipo="${eq}">Borrar</button>
             <span class="team-chevron">▼</span>
           </div>
           ${total > 0
