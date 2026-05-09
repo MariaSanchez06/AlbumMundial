@@ -257,25 +257,9 @@ body {
   box-shadow: 0 0 28px rgba(245,200,66,.22), 0 6px 24px rgba(0,0,0,.4);
 }
 
-/* Shimmer dorado en tarjetas obtenidas */
-.cromo-card.obtenido::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(105deg, transparent 38%, rgba(245,200,66,.14) 50%, transparent 62%);
-  background-size: 200% 100%;
-  animation: gold-shimmer 3.5s ease infinite;
-  pointer-events: none;
-  border-radius: 14px;
-}
-
 @keyframes card-in {
   from { opacity: 0; transform: translateY(22px) scale(.96); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
-}
-@keyframes gold-shimmer {
-  0%   { background-position: -200% center; }
-  100% { background-position: 200% center; }
 }
 
 /* Banner con colores de bandera */
@@ -466,6 +450,27 @@ body {
   padding: 2px 8px;
   border-radius: 20px;
 }
+
+/* ===== Equipos header ===== */
+.equipos-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.btn-nuevo-equipo {
+  background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+  color: #090d1f;
+  border: none;
+  border-radius: 20px;
+  padding: 7px 16px;
+  font-size: .8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity .15s, transform .15s;
+  font-family: inherit;
+}
+.btn-nuevo-equipo:hover { opacity: .88; transform: translateY(-1px); }
 
 /* ===== Team section in "equipos" view ===== */
 .team-section { margin-bottom: 28px; }

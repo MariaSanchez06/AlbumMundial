@@ -190,7 +190,15 @@ function renderEquipos(container) {
   const filter  = equipoFilter;
   const list    = filter ? equipos.filter(e => e === filter) : equipos;
 
-  container.innerHTML = list.map(eq => {
+  const header = `
+    <div class="equipos-header">
+      <span class="section-title" style="margin-bottom:0">
+        Equipos <span class="section-count">${equipos.length}</span>
+      </span>
+      <button class="btn-nuevo-equipo" id="btn-nuevo-equipo">+ Nuevo equipo</button>
+    </div>`;
+
+  container.innerHTML = header + list.map(eq => {
     const cromos  = allCromos.filter(c => c.equipo === eq);
     const tengo   = cromos.filter(c => c.obtenido).length;
     const pct     = Math.round(tengo / cromos.length * 100);
@@ -212,6 +220,7 @@ function renderEquipos(container) {
       </div>`;
   }).join('');
   bindCardEvents(container);
+  document.getElementById('btn-nuevo-equipo')?.addEventListener('click', openModal);
 }
 
 /* ===== Circular progress SVG ===== */
