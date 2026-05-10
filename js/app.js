@@ -255,12 +255,15 @@ function renderCurrentView() {
   }
 }
 
+const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+
 function applySearch(list) {
   if (!searchTerm) return list;
+  const q = norm(searchTerm);
   return list.filter(c =>
-    c.nombre_jugador.toLowerCase().includes(searchTerm) ||
-    c.equipo.toLowerCase().includes(searchTerm) ||
-    (c.siglas && c.siglas.toLowerCase().includes(searchTerm))
+    norm(c.nombre_jugador).includes(q) ||
+    norm(c.equipo).includes(q) ||
+    (c.siglas && norm(c.siglas).includes(q))
   );
 }
 
