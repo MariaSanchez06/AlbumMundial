@@ -329,7 +329,7 @@ function renderEquipos(container) {
         <div class="group-header">
           <span>${grupo}</span>
           <div class="group-header-btns">
-            <button class="btn-add-equipo-grupo btn-add-equipo-only" data-grupo="${grupo}">+ Equipo</button>
+            <button class="btn-add-equipo-grupo btn-add-equipo-only" data-grupo="${grupo}">Añadir</button>
             <button class="btn-add-equipo-grupo btn-borrar-grupo" data-grupo="${grupo}">Quitar</button>
           </div>
         </div>
