@@ -214,6 +214,22 @@
     </div>
   </div>
 
+  <!-- Modal: abrir sobre -->
+  <div class="modal-overlay" id="modal-sobre-overlay">
+    <div class="modal-panel modal-panel-sm" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <span class="modal-title">Abrir sobre <span class="sobre-count-badge" id="sobre-count">0</span></span>
+        <button class="modal-close" id="modal-sobre-close" aria-label="Cerrar">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group" style="margin-bottom:12px">
+          <input type="search" id="sobre-search" placeholder="Buscar jugador o equipo..." autocomplete="off" inputmode="search" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:.95rem;outline:none;font-family:inherit">
+        </div>
+        <div id="sobre-results"><p class="form-hint">Escribe para buscar cromos sin obtener</p></div>
+      </div>
+    </div>
+  </div>
+
   <script src="js/supabase.min.js"></script>
   <script src="js/config.js"></script>
   <script src="js/app.js"></script>

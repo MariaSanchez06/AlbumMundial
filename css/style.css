@@ -928,9 +928,53 @@ body {
   line-height: 1;
   color: var(--green);
 }
-.inicio-stat-num.red  { color: var(--red); }
-.inicio-stat-num.gold { color: var(--gold-dark); }
+.inicio-stat-num.red    { color: var(--red); }
+.inicio-stat-num.gold   { color: var(--gold-dark); }
+.inicio-stat-num.purple { color: #7c3aed; }
 .inicio-stat-label { font-size: .65rem; color: var(--text-sub); margin-top: 4px; text-transform: uppercase; letter-spacing: .5px; font-weight: 600; }
+.inicio-stats-row { grid-template-columns: repeat(4, 1fr); }
+.btn-abrir-sobre {
+  display: block; width: 100%; margin: 16px 0 4px;
+  background: linear-gradient(135deg, #0d6b36, #1a9e52);
+  color: white; border: none; border-radius: 16px;
+  padding: 14px; font-size: 1rem; font-weight: 700;
+  cursor: pointer; letter-spacing: .3px;
+  box-shadow: 0 4px 14px rgba(13,107,54,.3);
+}
+.btn-abrir-sobre:active { transform: scale(.97); }
+
+/* Confetti */
+@keyframes confetti-fall {
+  0%   { transform: translateY(-10px) rotate(0deg)   scale(1);   opacity: 1; }
+  100% { transform: translateY(100vh) rotate(540deg) scale(.5);  opacity: 0; }
+}
+.confetti-piece {
+  position: fixed; top: 0; width: 9px; height: 9px;
+  border-radius: 2px; pointer-events: none; z-index: 9999;
+  animation: confetti-fall linear forwards;
+}
+
+/* Modal sobre */
+.sobre-count-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--green); color: white;
+  font-size: .75rem; font-weight: 800;
+  width: 22px; height: 22px; border-radius: 50%;
+  margin-left: 6px; vertical-align: middle;
+}
+.sobre-result-btn {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  background: white; border: 1.5px solid var(--border); border-radius: 12px;
+  padding: 10px 12px; margin-bottom: 8px; cursor: pointer; text-align: left;
+  transition: border-color .15s, background .15s;
+}
+.sobre-result-btn:hover   { border-color: var(--green); background: #f0faf4; }
+.sobre-result-btn:disabled { opacity: .5; cursor: default; }
+.sobre-result-num  { font-size: 1rem; font-weight: 800; color: var(--text-sub); min-width: 36px; }
+.sobre-result-info { flex: 1; display: flex; flex-direction: column; gap: 1px; }
+.sobre-result-name { font-size: .9rem; font-weight: 700; color: var(--text); }
+.sobre-result-equipo { font-size: .72rem; color: var(--text-sub); text-transform: uppercase; letter-spacing: .4px; }
+.sobre-result-check { font-size: 1.1rem; font-weight: 800; color: var(--green); min-width: 20px; text-align: right; }
 
 .inicio-teams-list {
   background: white;

@@ -155,6 +155,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   bindEquipoModal();
   bindBorrarModal();
   bindEditarModal();
+  bindSobreModal();
   await loadCromos();
 });
 
@@ -432,6 +433,7 @@ function renderInicio(container) {
   const faltan    = total - tengo;
   const pct       = total > 0 ? Math.round(tengo / total * 100) : 0;
   const repetidos = allCromos.filter(c => c.cd_repetidos > 0).length;
+  const sobres    = Math.floor(tengo / 5);
 
   const equipos = [...new Set(allCromos.map(c => c.equipo))].sort();
   const teamRows = equipos.map(eq => {
@@ -476,12 +478,18 @@ function renderInicio(container) {
           <div class="inicio-stat-num gold">${repetidos}</div>
           <div class="inicio-stat-label">Repetidos</div>
         </div>
+        <div class="inicio-stat">
+          <div class="inicio-stat-num purple">${sobres}</div>
+          <div class="inicio-stat-label">Sobres</div>
+        </div>
       </div>
+      <button class="btn-abrir-sobre" id="btn-abrir-sobre">📦 Abrir sobre</button>
       <div class="section-title">Equipos</div>
       <div class="inicio-teams-list">
         ${teamRows}
       </div>
     </div>`;
+  document.getElementById('btn-abrir-sobre').addEventListener('click', openSobreModal);
 }
 
 /* ===== Stats view ===== */
@@ -694,6 +702,10 @@ async function toggleObtenido(id, current, cardEl) {
 
   updateHeaderStats();
   showToast(newVal ? '✓ Cromo marcado como obtenido' : '○ Marcado como faltante', newVal ? 'green' : '');
+  if (newVal) {
+    const equipoCromos = allCromos.filter(c => c.equipo === cromo.equipo);
+    if (equipoCromos.length > 0 && equipoCromos.every(c => c.obtenido)) celebrateTeam(cromo.equipo);
+  }
 
   if (currentView === 'faltan' || currentView === 'repetidos') {
     setTimeout(() => renderCurrentView(), 600);
@@ -1104,4 +1116,95 @@ async function submitEditarModal() {
   closeEditarModal();
   showToast('✓ Cromo actualizado', 'green');
   renderCurrentView();
+}
+
+/* ===== Celebración equipo completo ===== */
+function celebrateTeam(equipo) {
+  showToast(`🏆 ¡${equipo} completado!`, 'green');
+  const colors = ['#f0a500','#0d6b36','#e63946','#2563eb','#7c3aed','#f97316','#ec4899'];
+  for (let i = 0; i < 50; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    el.style.cssText = `left:${Math.random()*100}vw;background:${colors[Math.floor(Math.random()*colors.length)]};animation-delay:${(Math.random()*0.6).toFixed(2)}s;animation-duration:${(0.9+Math.random()*0.8).toFixed(2)}s`;
+    document.body.appendChild(el);
+    el.addEventListener('animationend', () => el.remove());
+  }
+}
+
+/* ===== Modal apertura de sobre ===== */
+let sobreCount = 0;
+
+function openSobreModal() {
+  sobreCount = 0;
+  document.getElementById('sobre-count').textContent = '0';
+  document.getElementById('sobre-search').value = '';
+  document.getElementById('sobre-results').innerHTML = '<p class="form-hint">Escribe para buscar cromos sin obtener</p>';
+  document.getElementById('modal-sobre-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('sobre-search').focus(), 80);
+}
+
+function closeSobreModal() {
+  document.getElementById('modal-sobre-overlay').classList.remove('open');
+  if (sobreCount > 0) {
+    updateHeaderStats();
+    renderCurrentView();
+  }
+}
+
+function bindSobreModal() {
+  document.getElementById('modal-sobre-close').addEventListener('click', closeSobreModal);
+  document.getElementById('modal-sobre-overlay').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeSobreModal();
+  });
+  const input = document.getElementById('sobre-search');
+  let timer;
+  input.addEventListener('input', () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => renderSobreResults(input.value.trim()), 150);
+  });
+}
+
+function renderSobreResults(query) {
+  const container = document.getElementById('sobre-results');
+  if (!query) {
+    container.innerHTML = '<p class="form-hint">Escribe para buscar cromos sin obtener</p>';
+    return;
+  }
+  const q = norm(query);
+  const matches = allCromos
+    .filter(c => !c.obtenido && (norm(c.nombre_jugador).includes(q) || norm(c.equipo).includes(q) || (c.siglas && norm(c.siglas).includes(q))))
+    .slice(0, 8);
+  if (matches.length === 0) {
+    container.innerHTML = '<p class="form-hint">Sin resultados</p>';
+    return;
+  }
+  container.innerHTML = matches.map(c => `
+    <button class="sobre-result-btn" data-id="${c.id}">
+      <span class="sobre-result-num">#${c.numero}</span>
+      <span class="sobre-result-info">
+        <span class="sobre-result-name">${c.nombre_jugador || '—'}</span>
+        <span class="sobre-result-equipo">${c.equipo}</span>
+      </span>
+      <span class="sobre-result-check">+</span>
+    </button>`).join('');
+  container.querySelectorAll('.sobre-result-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = Number(btn.dataset.id);
+      const cromo = allCromos.find(c => c.id === id);
+      if (!cromo || cromo.obtenido) return;
+      btn.disabled = true;
+      btn.querySelector('.sobre-result-check').textContent = '✓';
+      const { error } = await db.from('cromos').update({ obtenido: true }).eq('id', id);
+      if (error) { btn.disabled = false; btn.querySelector('.sobre-result-check').textContent = '+'; showToast('Error al guardar', 'red'); return; }
+      cromo.obtenido = true;
+      sobreCount++;
+      document.getElementById('sobre-count').textContent = sobreCount;
+      const equipoCromos = allCromos.filter(c => c.equipo === cromo.equipo);
+      if (equipoCromos.length > 0 && equipoCromos.every(c => c.obtenido)) celebrateTeam(cromo.equipo);
+      setTimeout(() => {
+        btn.remove();
+        if (!container.querySelector('.sobre-result-btn')) renderSobreResults(document.getElementById('sobre-search').value.trim());
+      }, 500);
+    });
+  });
 }
