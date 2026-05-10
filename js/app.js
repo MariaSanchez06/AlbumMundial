@@ -201,9 +201,15 @@ function populateEquipoSelect() {
     equipos.map(e => `<option value="${e}">${e}</option>`).join('');
   sel.onchange = () => { equipoFilter = sel.value; renderCurrentView(); };
 
-  // Actualiza el datalist del modal con todos los equipos conocidos
-  const dl = document.getElementById('equipos-datalist');
-  if (dl) dl.innerHTML = equipos.map(e => `<option value="${e}">`).join('');
+  // Actualiza el select del modal con todos los equipos conocidos
+  const allTeamsModal = [...new Set([...equipos, ...equiposReg.map(t => t.equipo)])].sort();
+  const modalSel = document.getElementById('modal-equipo');
+  if (modalSel) {
+    const prev = modalSel.value;
+    modalSel.innerHTML = '<option value="">— Selecciona un equipo —</option>' +
+      allTeamsModal.map(e => `<option value="${e}">${e}</option>`).join('');
+    if (prev) modalSel.value = prev;
+  }
 }
 
 /* ===== Render dispatcher ===== */
@@ -714,13 +720,14 @@ function bindModal() {
     if (e.target === e.currentTarget) closeModal();
   });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
-  document.getElementById('modal-equipo').addEventListener('input', onModalEquipoChange);
+  document.getElementById('modal-equipo').addEventListener('change', onModalEquipoChange);
   document.getElementById('modal-jugadores').addEventListener('input', updateModalPreview);
   document.getElementById('modal-desde').addEventListener('input', updateModalPreview);
   document.getElementById('modal-submit').addEventListener('click', submitModal);
 }
 
 function openModal() {
+  populateEquipoSelect();
   document.getElementById('modal-overlay').classList.add('open');
   document.getElementById('modal-equipo').value     = '';
   document.getElementById('modal-siglas').value     = '';
@@ -736,12 +743,12 @@ function closeModal() {
 }
 
 function onModalEquipoChange() {
-  const equipo = this.value.trim().toUpperCase();
+  const equipo = this.value;
+  const siglasInput = document.getElementById('modal-siglas');
+  const reg = equiposReg.find(t => t.equipo === equipo);
   const existentes = allCromos.filter(c => c.equipo === equipo);
+  siglasInput.value = reg?.siglas || existentes.find(c => c.siglas)?.siglas || '';
   if (existentes.length > 0) {
-    const siglasInput = document.getElementById('modal-siglas');
-    if (!siglasInput.value.trim())
-      siglasInput.value = existentes.find(c => c.siglas)?.siglas || '';
     document.getElementById('modal-desde').value = Math.max(...existentes.map(c => c.numero)) + 1;
   } else {
     document.getElementById('modal-desde').value = '1';
@@ -924,7 +931,7 @@ function submitEquipoModal() {
 }
 
 async function submitModal() {
-  const equipo = document.getElementById('modal-equipo').value.trim().toUpperCase();
+  const equipo = document.getElementById('modal-equipo').value;
   const siglas = document.getElementById('modal-siglas').value.trim().toUpperCase();
   const desde  = parseInt(document.getElementById('modal-desde').value) || 1;
   const lines  = getJugadoresLines();
