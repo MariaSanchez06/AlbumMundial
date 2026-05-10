@@ -402,6 +402,8 @@ body {
   line-height: 1;
   transition: color .15s;
   flex-shrink: 0;
+  display: inline-block;
+  transform: rotate(45deg);
 }
 .btn-editar-cromo:hover { color: var(--gold); }
 
