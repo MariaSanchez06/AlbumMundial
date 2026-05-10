@@ -80,18 +80,28 @@ async function loadGruposYEquipos() {
 }
 
 async function migrateLocalStorage() {
-  try {
-    const localMap   = JSON.parse(localStorage.getItem('grupos_map')  || '{}');
-    const localTeams = JSON.parse(localStorage.getItem('equipos_reg') || '[]');
-    if (Object.keys(localMap).length === 0 && localTeams.length === 0) return;
-    const { data: existing } = await db.from('grupos').select('equipo').limit(1);
-    if (existing && existing.length > 0) { localStorage.removeItem('grupos_map'); localStorage.removeItem('equipos_reg'); localStorage.removeItem('grupos_list'); return; }
-    const gruposRows = Object.entries(localMap).map(([equipo, grupo]) => ({ equipo, grupo }));
-    if (gruposRows.length)  await db.from('grupos').insert(gruposRows);
-    if (localTeams.length)  await db.from('equipos_reg').insert(localTeams);
+  // Limpiar siempre los datos legacy de localStorage
+  const clearLegacy = () => {
     localStorage.removeItem('grupos_map');
     localStorage.removeItem('equipos_reg');
     localStorage.removeItem('grupos_list');
+  };
+  if (localStorage.getItem('sb_migrated')) { clearLegacy(); return; }
+  try {
+    const localMap   = JSON.parse(localStorage.getItem('grupos_map')  || '{}');
+    const localTeams = JSON.parse(localStorage.getItem('equipos_reg') || '[]');
+    if (Object.keys(localMap).length === 0 && localTeams.length === 0) {
+      localStorage.setItem('sb_migrated', '1');
+      return;
+    }
+    // Si Supabase ya tiene datos, no reinsertamos
+    const { data: existing } = await db.from('equipos_reg').select('equipo').limit(1);
+    if (existing && existing.length > 0) { clearLegacy(); localStorage.setItem('sb_migrated', '1'); return; }
+    const gruposRows = Object.entries(localMap).map(([equipo, grupo]) => ({ equipo, grupo }));
+    if (gruposRows.length) await db.from('grupos').insert(gruposRows);
+    if (localTeams.length) await db.from('equipos_reg').insert(localTeams);
+    clearLegacy();
+    localStorage.setItem('sb_migrated', '1');
   } catch (e) { console.warn('Migration:', e); }
 }
 
