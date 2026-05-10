@@ -349,7 +349,7 @@ function renderEquipos(container) {
   document.getElementById('btn-nuevo-equipo')?.addEventListener('click', () => openEquipoModal());
   document.getElementById('btn-borrar-equipo')?.addEventListener('click', () => openBorrarModal());
   container.querySelectorAll('.btn-add-equipo-only').forEach(btn => {
-    btn.addEventListener('click', e => { e.stopPropagation(); openEquipoModal(btn.dataset.grupo); });
+    btn.addEventListener('click', e => { e.stopPropagation(); openBorrarModal(btn.dataset.grupo, 'asignar'); });
   });
   container.querySelectorAll('.btn-borrar-grupo').forEach(btn => {
     btn.addEventListener('click', e => { e.stopPropagation(); openBorrarModal(btn.dataset.grupo, 'quitar'); });
@@ -887,6 +887,15 @@ function bindBorrarModal() {
       if (reg) { reg.grupo = ''; db.from('equipos_reg').upsert({ ...reg, grupo: '' }); }
       showToast(`"${equipo}" quitado del grupo`, 'green');
       renderCurrentView();
+    } else if (borrarModalMode === 'asignar') {
+      const grupo = document.getElementById('btn-submit-borrar').dataset.grupo;
+      closeBorrarModal();
+      saveEquipoGrupo(equipo, grupo);
+      const reg = equiposReg.find(t => t.equipo === equipo);
+      if (reg) { reg.grupo = grupo; db.from('equipos_reg').upsert({ ...reg, grupo }); }
+      else { saveRegisteredTeam(equipo, '', grupo); }
+      showToast(`"${equipo}" añadido a ${grupo}`, 'green');
+      renderCurrentView();
     } else {
       if (!confirm(`¿Borrar "${equipo}" y todos sus cromos? Esta acción no se puede deshacer.`)) return;
       closeBorrarModal();
@@ -901,7 +910,11 @@ function openBorrarModal(grupo = null, mode = 'borrar') {
     ...allCromos.map(c => c.equipo),
     ...equiposReg.map(t => t.equipo)
   ])];
-  if (grupo) teams = teams.filter(eq => (gruposMap[eq] || 'Sin grupo') === grupo);
+  if (mode === 'asignar') {
+    teams = teams.filter(eq => (gruposMap[eq] || '') !== grupo);
+  } else if (mode === 'quitar' && grupo) {
+    teams = teams.filter(eq => (gruposMap[eq] || 'Sin grupo') === grupo);
+  }
   teams.sort();
   const sel = document.getElementById('borrar-equipo-select');
   sel.innerHTML = '<option value="">— Selecciona un equipo —</option>' +
@@ -909,13 +922,20 @@ function openBorrarModal(grupo = null, mode = 'borrar') {
   const title = document.querySelector('#modal-borrar-overlay .modal-title');
   const btn   = document.getElementById('btn-submit-borrar');
   if (mode === 'quitar') {
-    if (title) title.textContent = `Quitar del grupo`;
+    if (title) title.textContent = 'Quitar del grupo';
     btn.textContent = 'Quitar del grupo';
     btn.style.background = 'var(--green)';
+    btn.dataset.grupo = '';
+  } else if (mode === 'asignar') {
+    if (title) title.textContent = `Añadir a ${grupo}`;
+    btn.textContent = 'Añadir al grupo';
+    btn.style.background = 'var(--green)';
+    btn.dataset.grupo = grupo;
   } else {
     if (title) title.textContent = 'Borrar equipo';
     btn.textContent = 'Borrar equipo';
     btn.style.background = '';
+    btn.dataset.grupo = '';
   }
   btn.disabled = true;
   document.getElementById('modal-borrar-overlay').classList.add('open');
