@@ -748,11 +748,7 @@ function onModalEquipoChange() {
   const reg = equiposReg.find(t => t.equipo === equipo);
   const existentes = allCromos.filter(c => c.equipo === equipo);
   siglasInput.value = reg?.siglas || existentes.find(c => c.siglas)?.siglas || '';
-  if (existentes.length > 0) {
-    document.getElementById('modal-desde').value = Math.max(...existentes.map(c => c.numero)) + 1;
-  } else {
-    document.getElementById('modal-desde').value = '1';
-  }
+  document.getElementById('modal-desde').value = '1';
   updateModalPreview();
 }
 
