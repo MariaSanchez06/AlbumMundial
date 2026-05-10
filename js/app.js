@@ -557,14 +557,12 @@ function cromoCard(c) {
         ${posBadge}
       </div>
       <div class="cromo-footer">
+        <button class="btn-editar-cromo" data-id="${c.id}" title="Editar">✏</button>
         <span class="obtenido-badge">${c.obtenido ? '✓ Obtenido' : '○ Sin obtener'}</span>
-        <div style="display:flex;align-items:center;gap:6px">
-          <div class="rep-control" title="Repetidos">
-            <button class="rep-btn rep-minus" data-id="${c.id}">−</button>
-            <span class="rep-num">${c.cd_repetidos}</span>
-            <button class="rep-btn rep-plus" data-id="${c.id}">+</button>
-          </div>
-          <button class="btn-editar-cromo" data-id="${c.id}" title="Editar">✏</button>
+        <div class="rep-control" title="Repetidos">
+          <button class="rep-btn rep-minus" data-id="${c.id}">−</button>
+          <span class="rep-num">${c.cd_repetidos}</span>
+          <button class="rep-btn rep-plus" data-id="${c.id}">+</button>
         </div>
       </div>
     </div>`;
