@@ -278,11 +278,6 @@ function renderEquipos(container) {
       <span class="section-title" style="margin-bottom:0">
         Equipos <span class="section-count">${allTeams.length}</span>
       </span>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn-nuevo-equipo" id="btn-anadir-jugadores">+ Añadir jugadores</button>
-        <button class="btn-nuevo-equipo" id="btn-nuevo-equipo">+ Añadir equipo</button>
-        <button class="btn-nuevo-equipo btn-nuevo-equipo-danger" id="btn-borrar-equipo">Borrar equipo</button>
-      </div>
     </div>`;
 
   const content = sortedGroups.map(grupo => {
@@ -322,7 +317,11 @@ function renderEquipos(container) {
       <div class="group-section">
         <div class="group-header">
           <span>${grupo}</span>
-          <button class="btn-add-equipo-grupo" data-grupo="${grupo}">+ Añadir equipo</button>
+          <div class="group-header-btns">
+            <button class="btn-add-equipo-grupo btn-add-jugador-grupo" data-grupo="${grupo}">+ Jugador</button>
+            <button class="btn-add-equipo-grupo btn-add-equipo-only" data-grupo="${grupo}">+ Equipo</button>
+            <button class="btn-add-equipo-grupo btn-borrar-grupo" data-grupo="${grupo}">Borrar</button>
+          </div>
         </div>
         ${sections}
       </div>`;
@@ -332,18 +331,18 @@ function renderEquipos(container) {
   bindCardEvents(container);
   container.querySelectorAll('.team-toggle').forEach(header => {
     header.addEventListener('click', e => {
-      if (e.target.closest('.btn-add-equipo-grupo')) return;
+      if (e.target.closest('.group-header-btns')) return;
       header.closest('.team-section').classList.toggle('collapsed');
     });
   });
-  document.getElementById('btn-anadir-jugadores')?.addEventListener('click', openModal);
-  document.getElementById('btn-nuevo-equipo')?.addEventListener('click', () => openEquipoModal());
-  document.getElementById('btn-borrar-equipo')?.addEventListener('click', openBorrarModal);
-  container.querySelectorAll('.btn-add-equipo-grupo').forEach(btn => {
-    btn.addEventListener('click', e => {
-      e.stopPropagation();
-      openEquipoModal(btn.dataset.grupo);
-    });
+  container.querySelectorAll('.btn-add-jugador-grupo').forEach(btn => {
+    btn.addEventListener('click', e => { e.stopPropagation(); openModal(); });
+  });
+  container.querySelectorAll('.btn-add-equipo-only').forEach(btn => {
+    btn.addEventListener('click', e => { e.stopPropagation(); openEquipoModal(btn.dataset.grupo); });
+  });
+  container.querySelectorAll('.btn-borrar-grupo').forEach(btn => {
+    btn.addEventListener('click', e => { e.stopPropagation(); openBorrarModal(btn.dataset.grupo); });
   });
   container.querySelectorAll('.btn-quitar-grupo').forEach(btn => {
     btn.addEventListener('click', e => {
@@ -516,13 +515,16 @@ function onFotoError(img) {
   }
 }
 
+const POS_ABBR = { 'Portero': 'POR', 'Defensa': 'DEF', 'Medio': 'MED', 'Delantero': 'DEL' };
+
 /* ===== Cromo card HTML ===== */
 function cromoCard(c) {
-  const col          = teamColor(c.equipo);
-  const tag          = c.siglas || c.equipo.substring(0, 3);
-  const circleStyle  = c.obtenido ? '' : `border-color:${col.bg};color:${col.bg}`;
+  const col           = teamColor(c.equipo);
+  const tag           = c.siglas || c.equipo.substring(0, 3);
+  const circleStyle   = c.obtenido ? '' : `border-color:${col.bg};color:${col.bg}`;
   const circleContent = c.obtenido ? '✓' : c.numero;
-  const imgSrc       = cromoImageSrc(c);
+  const imgSrc        = cromoImageSrc(c);
+  const posBadge      = c.posicion ? `<span class="pos-badge pos-${c.posicion.toLowerCase()}">${POS_ABBR[c.posicion] || c.posicion}</span>` : '';
 
   return `
     <div class="cromo-card ${c.obtenido ? 'obtenido' : ''}"
@@ -542,13 +544,17 @@ function cromoCard(c) {
       </div>
       <div class="cromo-info">
         <div class="cromo-nombre">${c.nombre_jugador}</div>
+        ${posBadge}
       </div>
       <div class="cromo-footer">
         <span class="obtenido-badge">${c.obtenido ? '✓ Obtenido' : '○ Sin obtener'}</span>
-        <div class="rep-control" title="Repetidos">
-          <button class="rep-btn rep-minus" data-id="${c.id}">−</button>
-          <span class="rep-num">${c.cd_repetidos}</span>
-          <button class="rep-btn rep-plus" data-id="${c.id}">+</button>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div class="rep-control" title="Repetidos">
+            <button class="rep-btn rep-minus" data-id="${c.id}">−</button>
+            <span class="rep-num">${c.cd_repetidos}</span>
+            <button class="rep-btn rep-plus" data-id="${c.id}">+</button>
+          </div>
+          <button class="btn-editar-cromo" data-id="${c.id}" title="Editar">✏</button>
         </div>
       </div>
     </div>`;
@@ -865,14 +871,18 @@ function bindBorrarModal() {
   });
 }
 
-function openBorrarModal() {
-  const allTeams = [...new Set([
+function openBorrarModal(grupo = null) {
+  let teams = [...new Set([
     ...allCromos.map(c => c.equipo),
     ...equiposReg.map(t => t.equipo)
-  ])].sort();
+  ])];
+  if (grupo) teams = teams.filter(eq => (gruposMap[eq] || 'Sin grupo') === grupo);
+  teams.sort();
   const sel = document.getElementById('borrar-equipo-select');
   sel.innerHTML = '<option value="">— Selecciona un equipo —</option>' +
-    allTeams.map(e => `<option value="${e}">${e}</option>`).join('');
+    teams.map(e => `<option value="${e}">${e}</option>`).join('');
+  const title = document.querySelector('#modal-borrar-overlay .modal-title');
+  if (title) title.textContent = grupo ? `Borrar equipo de ${grupo}` : 'Borrar equipo';
   document.getElementById('btn-submit-borrar').disabled = true;
   document.getElementById('modal-borrar-overlay').classList.add('open');
   setTimeout(() => sel.focus(), 80);

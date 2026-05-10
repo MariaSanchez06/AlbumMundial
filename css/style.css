@@ -518,21 +518,28 @@ body {
   margin-bottom: 12px;
   border-bottom: 1.5px solid #f0f0f0;
 }
+.group-header-btns { display: flex; gap: 5px; align-items: center; flex-shrink: 0; }
 .btn-add-equipo-grupo {
-  font-size: .7rem;
+  font-size: .68rem;
   font-weight: 600;
   color: var(--green);
   background: var(--green-light);
   border: none;
   border-radius: 100px;
-  padding: 3px 12px;
+  padding: 3px 10px;
   cursor: pointer;
   font-family: inherit;
-  transition: opacity .15s;
+  transition: opacity .15s, background .15s, color .15s;
   letter-spacing: 0;
   text-transform: none;
+  white-space: nowrap;
 }
 .btn-add-equipo-grupo:hover { opacity: .8; }
+.btn-borrar-grupo {
+  color: var(--red) !important;
+  background: rgba(192,57,43,.08) !important;
+}
+.btn-borrar-grupo:hover { background: var(--red) !important; color: white !important; opacity: 1 !important; }
 
 .team-no-cromos {
   text-align: center;
