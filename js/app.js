@@ -203,6 +203,10 @@ function bindNav() {
       renderCurrentView();
     });
   });
+
+  document.getElementById('header-title').addEventListener('click', () => {
+    document.querySelector('[data-view="inicio"]').click();
+  });
 }
 
 /* ===== Search ===== */
