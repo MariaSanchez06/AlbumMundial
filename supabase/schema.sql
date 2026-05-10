@@ -41,7 +41,8 @@ CREATE POLICY "Public delete" ON cromos
 CREATE TABLE IF NOT EXISTS equipos_reg (
   equipo TEXT PRIMARY KEY,
   siglas TEXT DEFAULT '',
-  grupo  TEXT DEFAULT ''
+  grupo  TEXT DEFAULT '',
+  color  TEXT DEFAULT ''
 );
 
 ALTER TABLE equipos_reg ENABLE ROW LEVEL SECURITY;

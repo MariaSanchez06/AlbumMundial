@@ -634,6 +634,15 @@ body {
 }
 .team-header:hover { box-shadow: var(--shadow-lg); }
 .team-name { font-size: .92rem; font-weight: 700; color: var(--text); }
+.team-color-input {
+  -webkit-appearance: none; appearance: none;
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 2px solid rgba(0,0,0,.12); padding: 0;
+  cursor: pointer; flex-shrink: 0; background: none;
+}
+.team-color-input::-webkit-color-swatch-wrapper { padding: 0; }
+.team-color-input::-webkit-color-swatch { border: none; border-radius: 50%; }
+.team-color-input::-moz-color-swatch { border: none; border-radius: 50%; }
 .team-progress-wrap { flex: 1; margin: 0 14px; }
 .team-progress-bar { height: 5px; background: #f0f0f0; border-radius: 3px; overflow: hidden; }
 .team-progress-fill {

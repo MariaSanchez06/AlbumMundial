@@ -1,4 +1,4 @@
-const CACHE = 'album-mundial-v39';
+const CACHE = 'album-mundial-v40';
 const SHELL = [
   './',
   './index.html',

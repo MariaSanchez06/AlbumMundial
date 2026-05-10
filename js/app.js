@@ -6,8 +6,9 @@ let allCromos  = [];
 let currentView = 'inicio';
 let searchTerm  = '';
 let equipoFilter = '';
-let gruposMap  = {};   // { equipo: grupo }
-let equiposReg = [];   // [{ equipo, siglas, grupo }]
+let gruposMap     = {};   // { equipo: grupo }
+let equiposReg    = [];   // [{ equipo, siglas, grupo, color }]
+let teamColorsDB  = {};   // { equipo: '#rrggbb' } — colores guardados por el usuario
 
 /* ===== Team color map ===== */
 const TEAM_COLORS = {
@@ -54,7 +55,13 @@ const TEAM_COLORS = {
 };
 
 function teamColor(equipo) {
-  return TEAM_COLORS[equipo] || { bg: '#0d6b36', fg: '#ffffff' };
+  if (teamColorsDB[equipo]) return { bg: teamColorsDB[equipo] };
+  return TEAM_COLORS[equipo] || { bg: '#0d6b36' };
+}
+function teamColorHex(equipo) {
+  if (teamColorsDB[equipo]) return teamColorsDB[equipo];
+  const tc = TEAM_COLORS[equipo];
+  return tc ? tc.bg : '#0d6b36';
 }
 
 /* ===== Grupos predefinidos ===== */
@@ -71,10 +78,13 @@ async function loadGruposYEquipos() {
     db.from('grupos').select('*'),
     db.from('equipos_reg').select('*')
   ]);
-  gruposMap  = {};
-  equiposReg = eRes.data || [];
-  // Primero equipos_reg.grupo como base
-  equiposReg.forEach(r => { if (r.grupo) gruposMap[r.equipo] = r.grupo; });
+  gruposMap    = {};
+  teamColorsDB = {};
+  equiposReg   = eRes.data || [];
+  equiposReg.forEach(r => {
+    if (r.grupo)  gruposMap[r.equipo]    = r.grupo;
+    if (r.color)  teamColorsDB[r.equipo] = r.color;
+  });
   // La tabla grupos tiene prioridad (más actualizada)
   if (gRes.data) gRes.data.forEach(r => { gruposMap[r.equipo] = r.grupo; });
 }
@@ -120,14 +130,27 @@ async function removeEquipoGrupo(equipo) {
 
   if (r1.error || r2.error) showToast('Error quitando grupo: ' + (r1.error || r2.error).message, 'red');
 }
-async function saveRegisteredTeam(equipo, siglas, grupo) {
+async function saveRegisteredTeam(equipo, siglas, grupo, color) {
   equiposReg = equiposReg.filter(t => t.equipo !== equipo);
-  const entry = { equipo, siglas: siglas || '', grupo: grupo || '' };
+  const entry = { equipo, siglas: siglas || '', grupo: grupo || '', color: color || '' };
   equiposReg.push(entry);
+  if (color) teamColorsDB[equipo] = color;
   const res = await db.from('equipos_reg').upsert(entry);
-
   if (res.error) { showToast('Error registrando equipo: ' + res.error.message, 'red'); return; }
   if (grupo) await saveEquipoGrupo(equipo, grupo);
+}
+
+async function saveEquipoColor(equipo, color) {
+  teamColorsDB[equipo] = color;
+  const existing = equiposReg.find(t => t.equipo === equipo);
+  if (existing) {
+    existing.color = color;
+    await db.from('equipos_reg').update({ color }).eq('equipo', equipo);
+  } else {
+    const entry = { equipo, siglas: '', grupo: gruposMap[equipo] || '', color };
+    equiposReg.push(entry);
+    await db.from('equipos_reg').upsert(entry);
+  }
 }
 async function removeRegisteredTeam(equipo) {
   equiposReg = equiposReg.filter(t => t.equipo !== equipo);
@@ -339,6 +362,7 @@ function renderEquipos(container) {
       return `
         <div class="team-section collapsed" data-equipo="${eq}">
           <div class="team-header team-toggle">
+            <input type="color" class="team-color-input" data-equipo="${eq}" value="${teamColorHex(eq)}" title="Cambiar color">
             <span class="team-name">${eq}</span>
             <div class="team-progress-wrap">
               <div class="team-progress-bar">
@@ -384,7 +408,16 @@ function renderEquipos(container) {
   container.querySelectorAll('.team-toggle').forEach(header => {
     header.addEventListener('click', e => {
       if (e.target.closest('.group-header-btns')) return;
+      if (e.target.classList.contains('team-color-input')) return;
       header.closest('.team-section').classList.toggle('collapsed');
+    });
+  });
+  container.querySelectorAll('.team-color-input').forEach(input => {
+    input.addEventListener('click', e => e.stopPropagation());
+    input.addEventListener('change', async e => {
+      e.stopPropagation();
+      await saveEquipoColor(input.dataset.equipo, input.value);
+      renderCurrentView();
     });
   });
   document.getElementById('btn-anadir-jugadores')?.addEventListener('click', openModal);
@@ -1017,9 +1050,10 @@ async function submitEquipoModal() {
   const grupo  = document.getElementById('equipo-grupo-select').value.trim().toUpperCase();
   const equipo = document.getElementById('nuevo-equipo-nombre').value.trim().toUpperCase();
   const siglas = document.getElementById('nuevo-equipo-siglas').value.trim().toUpperCase();
+  const color  = document.getElementById('nuevo-equipo-color').value;
   if (!grupo || !equipo) return;
   document.getElementById('btn-submit-equipo').disabled = true;
-  await saveRegisteredTeam(equipo, siglas, grupo);
+  await saveRegisteredTeam(equipo, siglas, grupo, color);
   closeEquipoModal();
   showToast(`✓ ${equipo} registrado en ${grupo}`, 'green');
   document.querySelector('[data-view="equipos"]').click();
