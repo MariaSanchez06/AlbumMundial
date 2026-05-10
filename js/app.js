@@ -478,9 +478,9 @@ function renderInicio(container) {
           <div class="inicio-stat-num gold">${repetidos}</div>
           <div class="inicio-stat-label">Repetidos</div>
         </div>
-        <div class="inicio-stat">
+        <div class="inicio-stat" id="stat-sobres" style="cursor:pointer" title="Pulsa para ver el gasto estimado">
           <div class="inicio-stat-num purple">${sobres}</div>
-          <div class="inicio-stat-label">Sobres</div>
+          <div class="inicio-stat-label">Sobres 💶</div>
         </div>
       </div>
       <button class="btn-abrir-sobre" id="btn-abrir-sobre">📦 Abrir sobre</button>
@@ -490,6 +490,11 @@ function renderInicio(container) {
       </div>
     </div>`;
   document.getElementById('btn-abrir-sobre').addEventListener('click', openSobreModal);
+  document.getElementById('stat-sobres').addEventListener('click', () => {
+    const precio = 1.20;
+    const total  = Math.floor(allCromos.filter(c => c.obtenido).length / 5) * precio;
+    showToast(`~${total.toFixed(2).replace('.', ',')}€ gastados (${Math.floor(allCromos.filter(c => c.obtenido).length / 5)} sobres × ${precio.toFixed(2).replace('.', ',')}€)`, 'green', 4000);
+  });
 }
 
 /* ===== Stats view ===== */
@@ -761,12 +766,12 @@ function emptyState(icon, title, desc) {
 }
 
 let toastTimer;
-function showToast(msg, type = '') {
+function showToast(msg, type = '', ms = 2200) {
   const el = document.getElementById('toast');
   el.textContent = msg;
   el.className = 'toast show' + (type ? ' ' + type : '');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+  toastTimer = setTimeout(() => el.classList.remove('show'), ms);
 }
 
 /* ===== Modal: añadir jugadores (FAB) ===== */
