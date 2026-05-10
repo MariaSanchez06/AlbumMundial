@@ -330,7 +330,7 @@ function renderEquipos(container) {
           <span>${grupo}</span>
           <div class="group-header-btns">
             <button class="btn-add-equipo-grupo btn-add-equipo-only" data-grupo="${grupo}">+ Equipo</button>
-            <button class="btn-add-equipo-grupo btn-borrar-grupo" data-grupo="${grupo}">Borrar</button>
+            <button class="btn-add-equipo-grupo btn-borrar-grupo" data-grupo="${grupo}">Quitar</button>
           </div>
         </div>
         ${sections}
@@ -352,7 +352,7 @@ function renderEquipos(container) {
     btn.addEventListener('click', e => { e.stopPropagation(); openEquipoModal(btn.dataset.grupo); });
   });
   container.querySelectorAll('.btn-borrar-grupo').forEach(btn => {
-    btn.addEventListener('click', e => { e.stopPropagation(); openBorrarModal(btn.dataset.grupo); });
+    btn.addEventListener('click', e => { e.stopPropagation(); openBorrarModal(btn.dataset.grupo, 'quitar'); });
   });
   container.querySelectorAll('.btn-quitar-grupo').forEach(btn => {
     btn.addEventListener('click', e => {
@@ -866,7 +866,9 @@ function checkEquipoSubmit() {
   document.getElementById('btn-submit-equipo').disabled = !(grupo && nombre);
 }
 
-/* ===== Modal: borrar equipo ===== */
+/* ===== Modal: borrar / quitar equipo ===== */
+let borrarModalMode = 'borrar'; // 'borrar' | 'quitar'
+
 function bindBorrarModal() {
   document.getElementById('modal-borrar-close').addEventListener('click', closeBorrarModal);
   document.getElementById('modal-borrar-overlay').addEventListener('click', e => {
@@ -878,13 +880,23 @@ function bindBorrarModal() {
   document.getElementById('btn-submit-borrar').addEventListener('click', async () => {
     const equipo = document.getElementById('borrar-equipo-select').value;
     if (!equipo) return;
-    if (!confirm(`¿Borrar "${equipo}" y todos sus cromos? Esta acción no se puede deshacer.`)) return;
-    closeBorrarModal();
-    await deleteEquipo(equipo);
+    if (borrarModalMode === 'quitar') {
+      closeBorrarModal();
+      removeEquipoGrupo(equipo);
+      const reg = equiposReg.find(t => t.equipo === equipo);
+      if (reg) { reg.grupo = ''; db.from('equipos_reg').upsert({ ...reg, grupo: '' }); }
+      showToast(`"${equipo}" quitado del grupo`, 'green');
+      renderCurrentView();
+    } else {
+      if (!confirm(`¿Borrar "${equipo}" y todos sus cromos? Esta acción no se puede deshacer.`)) return;
+      closeBorrarModal();
+      await deleteEquipo(equipo);
+    }
   });
 }
 
-function openBorrarModal(grupo = null) {
+function openBorrarModal(grupo = null, mode = 'borrar') {
+  borrarModalMode = mode;
   let teams = [...new Set([
     ...allCromos.map(c => c.equipo),
     ...equiposReg.map(t => t.equipo)
@@ -895,8 +907,17 @@ function openBorrarModal(grupo = null) {
   sel.innerHTML = '<option value="">— Selecciona un equipo —</option>' +
     teams.map(e => `<option value="${e}">${e}</option>`).join('');
   const title = document.querySelector('#modal-borrar-overlay .modal-title');
-  if (title) title.textContent = grupo ? `Borrar equipo de ${grupo}` : 'Borrar equipo';
-  document.getElementById('btn-submit-borrar').disabled = true;
+  const btn   = document.getElementById('btn-submit-borrar');
+  if (mode === 'quitar') {
+    if (title) title.textContent = `Quitar del grupo`;
+    btn.textContent = 'Quitar del grupo';
+    btn.style.background = 'var(--green)';
+  } else {
+    if (title) title.textContent = 'Borrar equipo';
+    btn.textContent = 'Borrar equipo';
+    btn.style.background = '';
+  }
+  btn.disabled = true;
   document.getElementById('modal-borrar-overlay').classList.add('open');
   setTimeout(() => sel.focus(), 80);
 }
