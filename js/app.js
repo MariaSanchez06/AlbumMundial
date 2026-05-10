@@ -95,26 +95,32 @@ async function migrateLocalStorage() {
   } catch (e) { console.warn('Migration:', e); }
 }
 
-function saveEquipoGrupo(equipo, grupo) {
+async function saveEquipoGrupo(equipo, grupo) {
   gruposMap[equipo] = grupo;
-  db.from('grupos').upsert({ equipo, grupo }).then(() => {});
+  const { error: e1 } = await db.from('equipos_reg').upsert({ equipo, siglas: equiposReg.find(t => t.equipo === equipo)?.siglas || '', grupo });
+  const { error: e2 } = await db.from('grupos').upsert({ equipo, grupo });
+  if (e1 || e2) showToast('Error guardando grupo: ' + (e1 || e2).message, 'red');
 }
-function removeEquipoGrupo(equipo) {
+async function removeEquipoGrupo(equipo) {
   delete gruposMap[equipo];
-  db.from('grupos').delete().eq('equipo', equipo).then(() => {});
   const reg = equiposReg.find(t => t.equipo === equipo);
-  if (reg) { reg.grupo = ''; db.from('equipos_reg').update({ grupo: '' }).eq('equipo', equipo).then(() => {}); }
+  if (reg) reg.grupo = '';
+  const { error: e1 } = await db.from('grupos').delete().eq('equipo', equipo);
+  const { error: e2 } = await db.from('equipos_reg').update({ grupo: '' }).eq('equipo', equipo);
+  if (e1 || e2) showToast('Error quitando grupo: ' + (e1 || e2).message, 'red');
 }
-function saveRegisteredTeam(equipo, siglas, grupo) {
+async function saveRegisteredTeam(equipo, siglas, grupo) {
   equiposReg = equiposReg.filter(t => t.equipo !== equipo);
   const entry = { equipo, siglas: siglas || '', grupo: grupo || '' };
   equiposReg.push(entry);
-  db.from('equipos_reg').upsert(entry).then(() => {});
-  if (grupo) saveEquipoGrupo(equipo, grupo);
+  const { error } = await db.from('equipos_reg').upsert(entry);
+  if (error) { showToast('Error registrando equipo: ' + error.message, 'red'); return; }
+  if (grupo) await saveEquipoGrupo(equipo, grupo);
 }
-function removeRegisteredTeam(equipo) {
+async function removeRegisteredTeam(equipo) {
   equiposReg = equiposReg.filter(t => t.equipo !== equipo);
-  db.from('equipos_reg').delete().eq('equipo', equipo).then(() => {});
+  const { error } = await db.from('equipos_reg').delete().eq('equipo', equipo);
+  if (error) showToast('Error borrando equipo: ' + error.message, 'red');
 }
 function populateGruposDatalist() {
   const dl = document.getElementById('grupos-datalist');
@@ -360,12 +366,9 @@ function renderEquipos(container) {
     btn.addEventListener('click', e => { e.stopPropagation(); openBorrarModal(btn.dataset.grupo, 'quitar'); });
   });
   container.querySelectorAll('.btn-quitar-grupo').forEach(btn => {
-    btn.addEventListener('click', e => {
+    btn.addEventListener('click', async e => {
       e.stopPropagation();
-      const eq = btn.dataset.equipo;
-      removeEquipoGrupo(eq);
-      const reg = equiposReg.find(t => t.equipo === eq);
-      if (reg) { reg.grupo = ''; db.from('equipos_reg').upsert({ ...reg, grupo: '' }).then(() => {}); }
+      await removeEquipoGrupo(btn.dataset.equipo);
       renderCurrentView();
     });
   });
@@ -887,18 +890,13 @@ function bindBorrarModal() {
     if (!equipo) return;
     if (borrarModalMode === 'quitar') {
       closeBorrarModal();
-      removeEquipoGrupo(equipo);
-      const reg = equiposReg.find(t => t.equipo === equipo);
-      if (reg) { reg.grupo = ''; db.from('equipos_reg').upsert({ ...reg, grupo: '' }).then(() => {}); }
+      await removeEquipoGrupo(equipo);
       showToast(`"${equipo}" quitado del grupo`, 'green');
       renderCurrentView();
     } else if (borrarModalMode === 'asignar') {
       const grupo = document.getElementById('btn-submit-borrar').dataset.grupo;
       closeBorrarModal();
-      saveEquipoGrupo(equipo, grupo);
-      const reg = equiposReg.find(t => t.equipo === equipo);
-      if (reg) { reg.grupo = grupo; db.from('equipos_reg').upsert({ ...reg, grupo }).then(() => {}); }
-      else { saveRegisteredTeam(equipo, '', grupo); }
+      await saveEquipoGrupo(equipo, grupo);
       showToast(`"${equipo}" añadido a ${grupo}`, 'green');
       renderCurrentView();
     } else {
@@ -958,8 +956,8 @@ async function deleteEquipo(equipo) {
 
   allCromos = allCromos.filter(c => c.equipo !== equipo);
 
-  removeEquipoGrupo(equipo);
-  removeRegisteredTeam(equipo);
+  await removeEquipoGrupo(equipo);
+  await removeRegisteredTeam(equipo);
 
   populateEquipoSelect();
   updateHeaderStats();
@@ -967,12 +965,13 @@ async function deleteEquipo(equipo) {
   renderCurrentView();
 }
 
-function submitEquipoModal() {
+async function submitEquipoModal() {
   const grupo  = document.getElementById('equipo-grupo-select').value.trim().toUpperCase();
   const equipo = document.getElementById('nuevo-equipo-nombre').value.trim().toUpperCase();
   const siglas = document.getElementById('nuevo-equipo-siglas').value.trim().toUpperCase();
   if (!grupo || !equipo) return;
-  saveRegisteredTeam(equipo, siglas, grupo);
+  document.getElementById('btn-submit-equipo').disabled = true;
+  await saveRegisteredTeam(equipo, siglas, grupo);
   closeEquipoModal();
   showToast(`✓ ${equipo} registrado en ${grupo}`, 'green');
   document.querySelector('[data-view="equipos"]').click();
