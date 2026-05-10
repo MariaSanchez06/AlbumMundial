@@ -278,6 +278,11 @@ function renderEquipos(container) {
       <span class="section-title" style="margin-bottom:0">
         Equipos <span class="section-count">${allTeams.length}</span>
       </span>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn-nuevo-equipo" id="btn-anadir-jugadores">+ Añadir jugador</button>
+        <button class="btn-nuevo-equipo" id="btn-nuevo-equipo">+ Añadir equipo</button>
+        <button class="btn-nuevo-equipo btn-nuevo-equipo-danger" id="btn-borrar-equipo">Borrar equipo</button>
+      </div>
     </div>`;
 
   const content = sortedGroups.map(grupo => {
@@ -318,7 +323,6 @@ function renderEquipos(container) {
         <div class="group-header">
           <span>${grupo}</span>
           <div class="group-header-btns">
-            <button class="btn-add-equipo-grupo btn-add-jugador-grupo" data-grupo="${grupo}">+ Jugador</button>
             <button class="btn-add-equipo-grupo btn-add-equipo-only" data-grupo="${grupo}">+ Equipo</button>
             <button class="btn-add-equipo-grupo btn-borrar-grupo" data-grupo="${grupo}">Borrar</button>
           </div>
@@ -335,9 +339,9 @@ function renderEquipos(container) {
       header.closest('.team-section').classList.toggle('collapsed');
     });
   });
-  container.querySelectorAll('.btn-add-jugador-grupo').forEach(btn => {
-    btn.addEventListener('click', e => { e.stopPropagation(); openModal(); });
-  });
+  document.getElementById('btn-anadir-jugadores')?.addEventListener('click', openModal);
+  document.getElementById('btn-nuevo-equipo')?.addEventListener('click', () => openEquipoModal());
+  document.getElementById('btn-borrar-equipo')?.addEventListener('click', () => openBorrarModal());
   container.querySelectorAll('.btn-add-equipo-only').forEach(btn => {
     btn.addEventListener('click', e => { e.stopPropagation(); openEquipoModal(btn.dataset.grupo); });
   });
