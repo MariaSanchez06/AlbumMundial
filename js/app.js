@@ -314,7 +314,6 @@ function renderEquipos(container) {
               <div class="team-pct">${tengo}/${total}</div>
             </div>
             <span style="color:var(--gold);font-weight:700">${pct}%</span>
-            ${enGrupo ? `<button class="btn-quitar-grupo" data-equipo="${eq}" title="Quitar del grupo">✕</button>` : ''}
             <span class="team-chevron">▼</span>
           </div>
           ${total > 0
