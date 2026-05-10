@@ -97,24 +97,24 @@ async function migrateLocalStorage() {
 
 function saveEquipoGrupo(equipo, grupo) {
   gruposMap[equipo] = grupo;
-  db.from('grupos').upsert({ equipo, grupo });
+  db.from('grupos').upsert({ equipo, grupo }).then(() => {});
 }
 function removeEquipoGrupo(equipo) {
   delete gruposMap[equipo];
-  db.from('grupos').delete().eq('equipo', equipo);
+  db.from('grupos').delete().eq('equipo', equipo).then(() => {});
   const reg = equiposReg.find(t => t.equipo === equipo);
-  if (reg) { reg.grupo = ''; db.from('equipos_reg').update({ grupo: '' }).eq('equipo', equipo); }
+  if (reg) { reg.grupo = ''; db.from('equipos_reg').update({ grupo: '' }).eq('equipo', equipo).then(() => {}); }
 }
 function saveRegisteredTeam(equipo, siglas, grupo) {
   equiposReg = equiposReg.filter(t => t.equipo !== equipo);
   const entry = { equipo, siglas: siglas || '', grupo: grupo || '' };
   equiposReg.push(entry);
-  db.from('equipos_reg').upsert(entry);
+  db.from('equipos_reg').upsert(entry).then(() => {});
   if (grupo) saveEquipoGrupo(equipo, grupo);
 }
 function removeRegisteredTeam(equipo) {
   equiposReg = equiposReg.filter(t => t.equipo !== equipo);
-  db.from('equipos_reg').delete().eq('equipo', equipo);
+  db.from('equipos_reg').delete().eq('equipo', equipo).then(() => {});
 }
 function populateGruposDatalist() {
   const dl = document.getElementById('grupos-datalist');
@@ -365,7 +365,7 @@ function renderEquipos(container) {
       const eq = btn.dataset.equipo;
       removeEquipoGrupo(eq);
       const reg = equiposReg.find(t => t.equipo === eq);
-      if (reg) { reg.grupo = ''; db.from('equipos_reg').upsert({ ...reg, grupo: '' }); }
+      if (reg) { reg.grupo = ''; db.from('equipos_reg').upsert({ ...reg, grupo: '' }).then(() => {}); }
       renderCurrentView();
     });
   });
@@ -889,7 +889,7 @@ function bindBorrarModal() {
       closeBorrarModal();
       removeEquipoGrupo(equipo);
       const reg = equiposReg.find(t => t.equipo === equipo);
-      if (reg) { reg.grupo = ''; db.from('equipos_reg').upsert({ ...reg, grupo: '' }); }
+      if (reg) { reg.grupo = ''; db.from('equipos_reg').upsert({ ...reg, grupo: '' }).then(() => {}); }
       showToast(`"${equipo}" quitado del grupo`, 'green');
       renderCurrentView();
     } else if (borrarModalMode === 'asignar') {
@@ -897,7 +897,7 @@ function bindBorrarModal() {
       closeBorrarModal();
       saveEquipoGrupo(equipo, grupo);
       const reg = equiposReg.find(t => t.equipo === equipo);
-      if (reg) { reg.grupo = grupo; db.from('equipos_reg').upsert({ ...reg, grupo }); }
+      if (reg) { reg.grupo = grupo; db.from('equipos_reg').upsert({ ...reg, grupo }).then(() => {}); }
       else { saveRegisteredTeam(equipo, '', grupo); }
       showToast(`"${equipo}" añadido a ${grupo}`, 'green');
       renderCurrentView();
