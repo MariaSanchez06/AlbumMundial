@@ -72,8 +72,11 @@ async function loadGruposYEquipos() {
     db.from('equipos_reg').select('*')
   ]);
   gruposMap  = {};
-  if (gRes.data) gRes.data.forEach(r => { gruposMap[r.equipo] = r.grupo; });
   equiposReg = eRes.data || [];
+  // Primero equipos_reg.grupo como base
+  equiposReg.forEach(r => { if (r.grupo) gruposMap[r.equipo] = r.grupo; });
+  // La tabla grupos tiene prioridad (más actualizada)
+  if (gRes.data) gRes.data.forEach(r => { gruposMap[r.equipo] = r.grupo; });
 }
 
 async function migrateLocalStorage() {
@@ -99,6 +102,8 @@ function saveEquipoGrupo(equipo, grupo) {
 function removeEquipoGrupo(equipo) {
   delete gruposMap[equipo];
   db.from('grupos').delete().eq('equipo', equipo);
+  const reg = equiposReg.find(t => t.equipo === equipo);
+  if (reg) { reg.grupo = ''; db.from('equipos_reg').update({ grupo: '' }).eq('equipo', equipo); }
 }
 function saveRegisteredTeam(equipo, siglas, grupo) {
   equiposReg = equiposReg.filter(t => t.equipo !== equipo);
