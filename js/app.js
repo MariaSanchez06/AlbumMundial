@@ -130,6 +130,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   bindGrupoModal();
   bindEquipoModal();
   bindBorrarModal();
+  bindEditarModal();
   await loadCromos();
 });
 
@@ -582,9 +583,17 @@ function bindCardEvents(container) {
     else if (img.complete) img.remove(); // 404 cacheado
   });
 
+  container.querySelectorAll('.btn-editar-cromo').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      openEditarModal(Number(btn.dataset.id));
+    });
+  });
+
   container.querySelectorAll('.cromo-card').forEach(card => {
     card.addEventListener('click', async (e) => {
       if (e.target.classList.contains('rep-btn')) return;
+      if (e.target.classList.contains('btn-editar-cromo')) return;
       const id       = Number(card.dataset.id);
       const current  = card.dataset.obtenido === 'true';
       await toggleObtenido(id, current, card);
@@ -966,5 +975,59 @@ async function submitModal() {
   const sel = document.getElementById('equipo-select');
   sel.value = equipo;
   equipoFilter = equipo;
+  renderCurrentView();
+}
+
+/* ===== Modal: editar cromo ===== */
+let editarCromoId = null;
+
+function bindEditarModal() {
+  document.getElementById('modal-editar-close').addEventListener('click', closeEditarModal);
+  document.getElementById('modal-editar-overlay').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeEditarModal();
+  });
+  document.getElementById('btn-submit-editar').addEventListener('click', submitEditarModal);
+  document.getElementById('btn-delete-cromo').addEventListener('click', async () => {
+    const cromo = allCromos.find(c => c.id === editarCromoId);
+    if (!cromo) return;
+    if (!confirm(`¿Borrar el cromo #${cromo.numero} ${cromo.nombre_jugador}? Esta acción no se puede deshacer.`)) return;
+    const { error } = await db.from('cromos').delete().eq('id', editarCromoId);
+    if (error) { showToast('Error al borrar: ' + error.message, 'red'); return; }
+    allCromos = allCromos.filter(c => c.id !== editarCromoId);
+    closeEditarModal();
+    updateHeaderStats();
+    populateEquipoSelect();
+    showToast('Cromo borrado', 'red');
+    renderCurrentView();
+  });
+}
+
+function openEditarModal(id) {
+  const cromo = allCromos.find(c => c.id === id);
+  if (!cromo) return;
+  editarCromoId = id;
+  document.getElementById('editar-info').textContent = `${cromo.equipo} · #${cromo.numero}`;
+  document.getElementById('editar-nombre').value   = cromo.nombre_jugador || '';
+  document.getElementById('editar-posicion').value = cromo.posicion || '';
+  document.getElementById('modal-editar-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('editar-nombre').focus(), 80);
+}
+
+function closeEditarModal() {
+  document.getElementById('modal-editar-overlay').classList.remove('open');
+  editarCromoId = null;
+}
+
+async function submitEditarModal() {
+  const nombre   = document.getElementById('editar-nombre').value.trim().toUpperCase();
+  const posicion = document.getElementById('editar-posicion').value;
+  if (!nombre) return;
+  const { error } = await db.from('cromos').update({ nombre_jugador: nombre, posicion }).eq('id', editarCromoId);
+  if (error) { showToast('Error al guardar: ' + error.message, 'red'); return; }
+  const cromo = allCromos.find(c => c.id === editarCromoId);
+  cromo.nombre_jugador = nombre;
+  cromo.posicion = posicion;
+  closeEditarModal();
+  showToast('✓ Cromo actualizado', 'green');
   renderCurrentView();
 }

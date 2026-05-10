@@ -392,6 +392,22 @@ body {
 .rep-btn:hover { background: var(--green); color: white; border-color: var(--green); }
 .rep-num { min-width: 14px; text-align: center; font-size: .65rem; font-weight: 700; color: var(--text); }
 
+.btn-editar-cromo {
+  width: 20px; height: 20px;
+  border: 1.5px solid #e8e8e8;
+  border-radius: 6px;
+  background: white;
+  font-size: .7rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: #bbb;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.btn-editar-cromo:hover { background: var(--gold); color: white; border-color: var(--gold); }
+
 /* Foto */
 .cromo-foto { display: none; }
 .cromo-visual.has-foto { padding: 0; height: 160px; overflow: hidden; }
