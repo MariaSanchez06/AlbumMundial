@@ -296,6 +296,7 @@ function renderEquipos(container) {
       const tengo  = cromos.filter(c => c.obtenido).length;
       const total  = cromos.length;
       const pct    = total > 0 ? Math.round(tengo / total * 100) : 0;
+      const enGrupo = grupo !== 'Sin grupo';
       return `
         <div class="team-section collapsed" data-equipo="${eq}">
           <div class="team-header team-toggle">
@@ -307,6 +308,7 @@ function renderEquipos(container) {
               <div class="team-pct">${tengo}/${total}</div>
             </div>
             <span style="color:var(--gold);font-weight:700">${pct}%</span>
+            ${enGrupo ? `<button class="btn-quitar-grupo" data-equipo="${eq}" title="Quitar del grupo">✕</button>` : ''}
             <span class="team-chevron">▼</span>
           </div>
           ${total > 0
@@ -341,6 +343,16 @@ function renderEquipos(container) {
     btn.addEventListener('click', e => {
       e.stopPropagation();
       openEquipoModal(btn.dataset.grupo);
+    });
+  });
+  container.querySelectorAll('.btn-quitar-grupo').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const eq = btn.dataset.equipo;
+      removeEquipoGrupo(eq);
+      const reg = equiposReg.find(t => t.equipo === eq);
+      if (reg) { reg.grupo = ''; db.from('equipos_reg').upsert({ ...reg, grupo: '' }); }
+      renderCurrentView();
     });
   });
 }
