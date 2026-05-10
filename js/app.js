@@ -491,7 +491,7 @@ function renderInicio(container) {
     </div>`;
   document.getElementById('btn-abrir-sobre').addEventListener('click', openSobreModal);
   document.getElementById('stat-sobres').addEventListener('click', () => {
-    const precio = 1.20;
+    const precio = 1.50;
     const total  = Math.floor(allCromos.filter(c => c.obtenido).length / 5) * precio;
     showToast(`~${total.toFixed(2).replace('.', ',')}€ gastados (${Math.floor(allCromos.filter(c => c.obtenido).length / 5)} sobres × ${precio.toFixed(2).replace('.', ',')}€)`, 'green', 4000);
   });
