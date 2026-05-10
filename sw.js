@@ -1,4 +1,4 @@
-const CACHE = 'album-mundial-v28';
+const CACHE = 'album-mundial-v29';
 const SHELL = [
   './',
   './index.html',
@@ -52,10 +52,10 @@ self.addEventListener('fetch', e => {
       return fetch(e.request).then(res => {
         if (res.ok) {
           const clone = res.clone();
-          caches.open(CACHE).then(c => c.put(e.request, clone));
+          caches.open(CACHE).then(c => c.put(e.request, clone)).catch(() => {});
         }
         return res;
-      });
+      }).catch(() => new Response('', { status: 404, statusText: 'Not Found' }));
     })
   );
 });
