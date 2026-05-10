@@ -1,4 +1,4 @@
-const CACHE = 'album-mundial-v31';
+const CACHE = 'album-mundial-v32';
 const SHELL = [
   './',
   './index.html',
@@ -11,13 +11,11 @@ const SHELL = [
   './icons/copa.png',
 ];
 
-// Instalar: guarda el shell en caché
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)));
   self.skipWaiting();
 });
 
-// Activar: elimina cachés antiguas
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys().then(keys =>
@@ -27,25 +25,16 @@ self.addEventListener('activate', e => {
   self.clients.claim();
 });
 
-// Fetch: red primero para Supabase, caché primero para el resto
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
 
-  // Supabase API → siempre intentar red; caché como respaldo offline
+  // Supabase: siempre red, sin caché
   if (url.hostname.includes('supabase.co')) {
-    e.respondWith(
-      fetch(e.request)
-        .then(res => {
-          const clone = res.clone();
-          caches.open(CACHE).then(c => c.put(e.request, clone));
-          return res;
-        })
-        .catch(() => caches.match(e.request))
-    );
+    e.respondWith(fetch(e.request));
     return;
   }
 
-  // Resto (shell): caché primero, luego red
+  // Shell: caché primero, luego red
   e.respondWith(
     caches.match(e.request).then(cached => {
       if (cached) return cached;
