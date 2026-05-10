@@ -32,6 +32,9 @@ CREATE POLICY "Public update" ON cromos
 CREATE POLICY "Public insert" ON cromos
   FOR INSERT WITH CHECK (true);
 
+CREATE POLICY "Public delete" ON cromos
+  FOR DELETE USING (true);
+
 -- -------------------------------------------------------
 -- Tabla: equipos_reg  (equipos registrados con siglas y grupo)
 -- -------------------------------------------------------

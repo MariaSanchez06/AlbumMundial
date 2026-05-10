@@ -115,22 +115,25 @@ async function removeEquipoGrupo(equipo) {
   delete gruposMap[equipo];
   const reg = equiposReg.find(t => t.equipo === equipo);
   if (reg) reg.grupo = '';
-  const { error: e1 } = await db.from('grupos').delete().eq('equipo', equipo);
-  const { error: e2 } = await db.from('equipos_reg').update({ grupo: '' }).eq('equipo', equipo);
-  if (e1 || e2) showToast('Error quitando grupo: ' + (e1 || e2).message, 'red');
+  const r1 = await db.from('grupos').delete().eq('equipo', equipo);
+  const r2 = await db.from('equipos_reg').update({ grupo: '' }).eq('equipo', equipo);
+
+  if (r1.error || r2.error) showToast('Error quitando grupo: ' + (r1.error || r2.error).message, 'red');
 }
 async function saveRegisteredTeam(equipo, siglas, grupo) {
   equiposReg = equiposReg.filter(t => t.equipo !== equipo);
   const entry = { equipo, siglas: siglas || '', grupo: grupo || '' };
   equiposReg.push(entry);
-  const { error } = await db.from('equipos_reg').upsert(entry);
-  if (error) { showToast('Error registrando equipo: ' + error.message, 'red'); return; }
+  const res = await db.from('equipos_reg').upsert(entry);
+
+  if (res.error) { showToast('Error registrando equipo: ' + res.error.message, 'red'); return; }
   if (grupo) await saveEquipoGrupo(equipo, grupo);
 }
 async function removeRegisteredTeam(equipo) {
   equiposReg = equiposReg.filter(t => t.equipo !== equipo);
-  const { error } = await db.from('equipos_reg').delete().eq('equipo', equipo);
-  if (error) showToast('Error borrando equipo: ' + error.message, 'red');
+  const res = await db.from('equipos_reg').delete().eq('equipo', equipo);
+
+  if (res.error) showToast('Error borrando equipo: ' + res.error.message, 'red');
 }
 function populateGruposDatalist() {
   const dl = document.getElementById('grupos-datalist');
@@ -961,8 +964,9 @@ function closeBorrarModal() {
 
 async function deleteEquipo(equipo) {
 
-  const { error } = await db.from('cromos').delete().eq('equipo', equipo);
-  if (error) { showToast('Error al borrar: ' + error.message, 'red'); return; }
+  const res1 = await db.from('cromos').delete().eq('equipo', equipo);
+
+  if (res1.error) { showToast('Error al borrar: ' + res1.error.message, 'red'); return; }
 
   allCromos = allCromos.filter(c => c.equipo !== equipo);
 
