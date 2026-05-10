@@ -361,7 +361,17 @@ function renderEquipos(container) {
       </div>`;
   }).join('');
 
+  const expanded = new Set(
+    [...container.querySelectorAll('.team-section:not(.collapsed)')]
+      .map(s => s.dataset.equipo)
+  );
+
   container.innerHTML = header + content;
+
+  container.querySelectorAll('.team-section').forEach(s => {
+    if (expanded.has(s.dataset.equipo)) s.classList.remove('collapsed');
+  });
+
   bindCardEvents(container);
   container.querySelectorAll('.team-toggle').forEach(header => {
     header.addEventListener('click', e => {
