@@ -519,7 +519,7 @@ function renderInicio(container) {
           </div>
           <div class="inicio-hero-count">${tengo} de ${total} cromos</div>
         </div>
-        <img src="icons/copa.png?v=2" class="inicio-copa" alt="">
+        <img src="icons/copa2026.png" class="inicio-copa" alt="">
       </div>
       <div class="inicio-stats-row">
         <div class="inicio-stat">
