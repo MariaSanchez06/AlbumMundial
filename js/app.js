@@ -12,46 +12,56 @@ let teamColorsDB  = {};   // { equipo: '#rrggbb' } — colores guardados por el 
 
 /* ===== Team color map ===== */
 const TEAM_COLORS = {
-  'FWC': {
-    bg: '#f0a500',
-    banner: 'linear-gradient(90deg, #032979 50%, #f0a500 50%)'
-  },
-  'MEXICO': {
-    bg: '#006847',
-    banner: 'linear-gradient(90deg, #006847 33.3%, #ffffff 33.3%, #ffffff 66.6%, #ce1126 66.6%)'
-  },
-  'BRASIL': {
-    bg: '#009c3b',
-    banner: 'linear-gradient(90deg, #009c3b 25%, #ffdf00 25%, #ffdf00 75%, #009c3b 75%)'
-  },
-  'SUIZA': {
-    bg: '#ff0000',
-    banner: 'linear-gradient(90deg, #ff0000 35%, #ffffff 35%, #ffffff 65%, #ff0000 65%)'
-  },
-  'QATAR': {
-    bg: '#8d153a',
-    banner: 'linear-gradient(90deg, #8d153a 65%, #ffffff 65%)'
-  },
-  'CANADÁ': {
-    bg: '#ff0000',
-    banner: 'linear-gradient(90deg, #ff0000 25%, #ffffff 25%, #ffffff 75%, #ff0000 75%)'
-  },
-  'BOSNIA-HERZEGOVINA': {
-    bg: '#003da5',
-    banner: 'linear-gradient(90deg, #003da5 60%, #ffcc00 60%)'
-  },
-  'COREA DEL SUR': {
-    bg: '#c60c30',
-    banner: 'linear-gradient(90deg, #ffffff 20%, #c60c30 20%, #c60c30 55%, #003478 55%, #ffffff 80%)'
-  },
-  'REPÚBLICA CHECA': {
-    bg: '#d7141a',
-    banner: 'linear-gradient(90deg, #ffffff 33%, #d7141a 33%, #d7141a 66%, #11457e 66%)'
-  },
-  'SUDÁFRICA': {
-    bg: '#007a4d',
-    banner: 'linear-gradient(90deg, #007a4d 20%, #000000 20%, #000000 35%, #ffb612 35%, #ffb612 65%, #de3831 65%, #de3831 80%, #002395 80%)'
-  },
+  'FWC':               { bg: '#f0a500', banner: 'linear-gradient(90deg, #032979 50%, #f0a500 50%)' },
+  'MEXICO':            { bg: '#006847', banner: 'linear-gradient(90deg, #006847 33.3%, #ffffff 33.3%, #ffffff 66.6%, #ce1126 66.6%)' },
+  'BRASIL':            { bg: '#009c3b', banner: 'linear-gradient(90deg, #009c3b 25%, #ffdf00 25%, #ffdf00 75%, #009c3b 75%)' },
+  'SUIZA':             { bg: '#ff0000', banner: 'linear-gradient(90deg, #ff0000 35%, #ffffff 35%, #ffffff 65%, #ff0000 65%)' },
+  'QATAR':             { bg: '#8d153a', banner: 'linear-gradient(90deg, #8d153a 65%, #ffffff 65%)' },
+  'CANADÁ':            { bg: '#ff0000', banner: 'linear-gradient(90deg, #ff0000 25%, #ffffff 25%, #ffffff 75%, #ff0000 75%)' },
+  'BOSNIA-HERZEGOVINA':{ bg: '#003da5', banner: 'linear-gradient(90deg, #003da5 60%, #ffcc00 60%)' },
+  'COREA DEL SUR':     { bg: '#c60c30', banner: 'linear-gradient(90deg, #ffffff 20%, #c60c30 20%, #c60c30 55%, #003478 55%, #ffffff 80%)' },
+  'REPÚBLICA CHECA':   { bg: '#d7141a', banner: 'linear-gradient(90deg, #ffffff 33%, #d7141a 33%, #d7141a 66%, #11457e 66%)' },
+  'SUDÁFRICA':         { bg: '#007a4d', banner: 'linear-gradient(90deg, #007a4d 20%, #000000 20%, #000000 35%, #ffb612 35%, #ffb612 65%, #de3831 65%, #de3831 80%, #002395 80%)' },
+  'ALEMANIA':          { bg: '#dd0000', banner: 'linear-gradient(90deg, #000000 33%, #dd0000 33%, #dd0000 66%, #ffce00 66%)' },
+  'ARABIA SAUDITA':    { bg: '#006c35', banner: 'linear-gradient(90deg, #006c35 70%, #ffffff 70%)' },
+  'ARGELIA':           { bg: '#006233', banner: 'linear-gradient(90deg, #006233 50%, #ffffff 50%)' },
+  'ARGENTINA':         { bg: '#74acdf', banner: 'linear-gradient(90deg, #74acdf 25%, #ffffff 25%, #ffffff 75%, #74acdf 75%)' },
+  'AUSTRALIA':         { bg: '#00008b', banner: 'linear-gradient(90deg, #00008b 55%, #cc0000 55%, #cc0000 65%, #ffffff 65%)' },
+  'AUSTRIA':           { bg: '#ed2939', banner: 'linear-gradient(90deg, #ed2939 33%, #ffffff 33%, #ffffff 66%, #ed2939 66%)' },
+  'BÉLGICA':           { bg: '#fdda25', banner: 'linear-gradient(90deg, #000000 33%, #fdda25 33%, #fdda25 66%, #ef3340 66%)' },
+  'CABO VERDE':        { bg: '#003893', banner: 'linear-gradient(90deg, #003893 55%, #cf2027 55%, #cf2027 62%, #f4f4f4 62%, #f4f4f4 69%, #cf2027 69%)' },
+  'COCA-COLA':         { bg: '#f40009', banner: 'linear-gradient(90deg, #f40009 60%, #ffffff 60%)' },
+  'COLOMBIA':          { bg: '#fcd116', banner: 'linear-gradient(90deg, #fcd116 40%, #003087 40%, #003087 66%, #ce1126 66%)' },
+  'CONGO':             { bg: '#009543', banner: 'linear-gradient(135deg, #009543 40%, #fbde4a 40%, #fbde4a 60%, #dc241f 60%)' },
+  'COSTA DE MARFIL':   { bg: '#f77f00', banner: 'linear-gradient(90deg, #f77f00 33%, #ffffff 33%, #ffffff 66%, #009a44 66%)' },
+  'CROACIA':           { bg: '#ff0000', banner: 'linear-gradient(90deg, #ff0000 33%, #ffffff 33%, #ffffff 66%, #0032a0 66%)' },
+  'CURAZAO':           { bg: '#002b7f', banner: 'linear-gradient(90deg, #002b7f 65%, #f9e814 65%, #f9e814 78%, #002b7f 78%)' },
+  'ECUADOR':           { bg: '#ffd100', banner: 'linear-gradient(90deg, #ffd100 40%, #003087 40%, #003087 66%, #ef3340 66%)' },
+  'EGIPTO':            { bg: '#ce1126', banner: 'linear-gradient(90deg, #ce1126 33%, #ffffff 33%, #ffffff 66%, #000000 66%)' },
+  'ESCOCIA':           { bg: '#003078', banner: 'linear-gradient(135deg, #003078 45%, #ffffff 45%, #ffffff 55%, #003078 55%)' },
+  'ESPAÑA':            { bg: '#c60b1e', banner: 'linear-gradient(90deg, #c60b1e 25%, #ffc400 25%, #ffc400 75%, #c60b1e 75%)' },
+  'FRANCIA':           { bg: '#002395', banner: 'linear-gradient(90deg, #002395 33%, #ffffff 33%, #ffffff 66%, #ed2939 66%)' },
+  'GHANA':             { bg: '#006b3f', banner: 'linear-gradient(90deg, #ce1126 33%, #fcd116 33%, #fcd116 66%, #006b3f 66%)' },
+  'HAITÍ':             { bg: '#00209f', banner: 'linear-gradient(90deg, #00209f 50%, #d21034 50%)' },
+  'INGLATERRA':        { bg: '#cf142b', banner: 'linear-gradient(90deg, #ffffff 35%, #cf142b 35%, #cf142b 65%, #ffffff 65%)' },
+  'IRAK':              { bg: '#ce1126', banner: 'linear-gradient(90deg, #ce1126 33%, #ffffff 33%, #ffffff 66%, #000000 66%)' },
+  'IRÁN':              { bg: '#239f40', banner: 'linear-gradient(90deg, #239f40 33%, #ffffff 33%, #ffffff 66%, #da0000 66%)' },
+  'JAPON':             { bg: '#bc002d', banner: 'linear-gradient(90deg, #ffffff 30%, #bc002d 30%, #bc002d 70%, #ffffff 70%)' },
+  'JORDANIA':          { bg: '#007a3d', banner: 'linear-gradient(90deg, #ce1126 20%, #000000 20%, #000000 53%, #ffffff 53%, #ffffff 77%, #007a3d 77%)' },
+  'MARRUECOS':         { bg: '#c1272d', banner: 'linear-gradient(90deg, #c1272d 45%, #006233 45%, #006233 55%, #c1272d 55%)' },
+  'NORUEGA':           { bg: '#ef2b2d', banner: 'linear-gradient(90deg, #ef2b2d 35%, #ffffff 35%, #ffffff 45%, #002868 45%, #002868 55%, #ffffff 55%, #ffffff 65%, #ef2b2d 65%)' },
+  'NUEVA ZELANDA':     { bg: '#00247d', banner: 'linear-gradient(90deg, #00247d 60%, #cc0000 60%)' },
+  'PAÍSES BAJOS':      { bg: '#ae1c28', banner: 'linear-gradient(90deg, #ae1c28 33%, #ffffff 33%, #ffffff 66%, #21468b 66%)' },
+  'PANAMA':            { bg: '#db0000', banner: 'linear-gradient(90deg, #ffffff 25%, #005293 25%, #005293 50%, #ffffff 50%, #ffffff 75%, #db0000 75%)' },
+  'PARAGUAY':          { bg: '#d52b1e', banner: 'linear-gradient(90deg, #d52b1e 33%, #ffffff 33%, #ffffff 66%, #0038a8 66%)' },
+  'PORTUGAL':          { bg: '#006600', banner: 'linear-gradient(90deg, #006600 38%, #ff0000 38%)' },
+  'SENEGAL':           { bg: '#00853f', banner: 'linear-gradient(90deg, #00853f 33%, #fdef42 33%, #fdef42 66%, #e31b23 66%)' },
+  'SUECIA':            { bg: '#006aa7', banner: 'linear-gradient(90deg, #006aa7 35%, #fecc02 35%, #fecc02 48%, #006aa7 48%, #006aa7 52%, #fecc02 52%, #fecc02 65%, #006aa7 65%)' },
+  'TÚNEZ':             { bg: '#e70013', banner: 'linear-gradient(90deg, #e70013 40%, #ffffff 40%, #ffffff 60%, #e70013 60%)' },
+  'TURQUIA':           { bg: '#e30a17', banner: 'linear-gradient(90deg, #e30a17 55%, #ffffff 55%, #ffffff 68%, #e30a17 68%)' },
+  'URUGUAY':           { bg: '#0038a8', banner: 'linear-gradient(90deg, #ffffff 25%, #0038a8 25%, #0038a8 50%, #ffffff 50%, #ffffff 75%, #0038a8 75%)' },
+  'USA':               { bg: '#3c3b6e', banner: 'linear-gradient(90deg, #3c3b6e 35%, #ffffff 35%, #ffffff 65%, #b22234 65%)' },
+  'UZBEKISTAN':        { bg: '#009fca', banner: 'linear-gradient(90deg, #009fca 33%, #ffffff 33%, #ffffff 66%, #1eb53a 66%)' },
 };
 
 function teamColor(equipo) {
