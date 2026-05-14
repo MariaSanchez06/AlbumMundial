@@ -381,9 +381,9 @@ function renderEquipos(container) {
     }).join('');
 
     return `
-      <div class="group-section">
-        <div class="group-header">
-          <span>${grupo}</span>
+      <div class="group-section collapsed" data-grupo="${grupo}">
+        <div class="group-header group-toggle">
+          <span><span class="group-chevron">▼</span>${grupo}</span>
           <div class="group-header-btns">
             <button class="btn-add-equipo-grupo btn-add-equipo-only" data-grupo="${grupo}">Añadir</button>
             <button class="btn-add-equipo-grupo btn-borrar-grupo" data-grupo="${grupo}">Quitar</button>
@@ -397,11 +397,18 @@ function renderEquipos(container) {
     [...container.querySelectorAll('.team-section:not(.collapsed)')]
       .map(s => s.dataset.equipo)
   );
+  const expandedGroups = new Set(
+    [...container.querySelectorAll('.group-section:not(.collapsed)')]
+      .map(s => s.dataset.grupo)
+  );
 
   container.innerHTML = header + content;
 
   container.querySelectorAll('.team-section').forEach(s => {
     if (expanded.has(s.dataset.equipo)) s.classList.remove('collapsed');
+  });
+  container.querySelectorAll('.group-section').forEach(s => {
+    if (expandedGroups.has(s.dataset.grupo)) s.classList.remove('collapsed');
   });
 
   bindCardEvents(container);
@@ -418,6 +425,11 @@ function renderEquipos(container) {
       e.stopPropagation();
       await saveEquipoColor(input.dataset.equipo, input.value);
       renderCurrentView();
+    });
+  });
+  container.querySelectorAll('.group-toggle').forEach(header => {
+    header.addEventListener('click', () => {
+      header.closest('.group-section').classList.toggle('collapsed');
     });
   });
   document.getElementById('btn-anadir-jugadores')?.addEventListener('click', openModal);
@@ -820,15 +832,17 @@ function bindModal() {
   document.getElementById('modal-submit').addEventListener('click', submitModal);
 }
 
+const DEFAULT_JUGADORES = 'ESCUDO\n\n\n\n\n\n\n\n\n\n\n\nEQUIPO';
+
 function openModal() {
   populateEquipoSelect();
   document.getElementById('modal-overlay').classList.add('open');
   document.getElementById('modal-equipo').value     = '';
   document.getElementById('modal-siglas').value     = '';
   document.getElementById('modal-desde').value      = '1';
-  document.getElementById('modal-jugadores').value  = '';
+  document.getElementById('modal-jugadores').value  = DEFAULT_JUGADORES;
   document.getElementById('modal-preview').innerHTML = '';
-  updateSubmitBtn();
+  updateModalPreview();
   setTimeout(() => document.getElementById('modal-equipo').focus(), 80);
 }
 
@@ -846,25 +860,30 @@ function onModalEquipoChange() {
   updateModalPreview();
 }
 
-function getJugadoresLines() {
+function getAllModalLines() {
   return document.getElementById('modal-jugadores').value
-    .split('\n').map(l => l.trim().toUpperCase()).filter(l => l.length > 0);
+    .split('\n').map(l => l.trim().toUpperCase());
+}
+
+function getJugadoresLines() {
+  return getAllModalLines().filter(l => l.length > 0);
 }
 
 function updateModalPreview() {
-  const lines = getJugadoresLines();
-  const desde = parseInt(document.getElementById('modal-desde').value) || 1;
-  const wrap  = document.getElementById('modal-preview');
-  if (lines.length === 0) { wrap.innerHTML = ''; updateSubmitBtn(); return; }
+  const allLines = getAllModalLines();
+  const nonEmpty = allLines.filter(l => l.length > 0);
+  const desde    = parseInt(document.getElementById('modal-desde').value) || 1;
+  const wrap     = document.getElementById('modal-preview');
+  if (nonEmpty.length === 0) { wrap.innerHTML = ''; updateSubmitBtn(); return; }
   wrap.innerHTML = `
     <div class="preview-wrap">
-      <div class="preview-header">${lines.length} cromo${lines.length !== 1 ? 's' : ''} a añadir</div>
+      <div class="preview-header">${nonEmpty.length} cromo${nonEmpty.length !== 1 ? 's' : ''} a añadir</div>
       <div class="preview-list">
-        ${lines.map((nombre, i) => `
+        ${allLines.map((nombre, i) => nombre ? `
           <div class="preview-item">
             <span class="preview-num">#${desde + i}</span>
             <span class="preview-nombre">${nombre}</span>
-          </div>`).join('')}
+          </div>` : '').join('')}
       </div>
     </div>`;
   updateSubmitBtn();
@@ -1060,25 +1079,28 @@ async function submitEquipoModal() {
 }
 
 async function submitModal() {
-  const equipo = document.getElementById('modal-equipo').value;
-  const siglas = document.getElementById('modal-siglas').value.trim().toUpperCase();
-  const desde  = parseInt(document.getElementById('modal-desde').value) || 1;
-  const lines  = getJugadoresLines();
+  const equipo   = document.getElementById('modal-equipo').value;
+  const siglas   = document.getElementById('modal-siglas').value.trim().toUpperCase();
+  const desde    = parseInt(document.getElementById('modal-desde').value) || 1;
+  const allLines = getAllModalLines();
+  const nonEmpty = allLines.filter(l => l.length > 0);
 
-  if (!equipo || lines.length === 0) return;
+  if (!equipo || nonEmpty.length === 0) return;
 
   const btn = document.getElementById('modal-submit');
   btn.disabled = true;
   btn.textContent = 'Guardando...';
 
-  const nuevos = lines.map((nombre, i) => ({
-    equipo,
-    numero: desde + i,
-    nombre_jugador: nombre,
-    siglas,
-    cd_repetidos: 0,
-    obtenido: false,
-  }));
+  const nuevos = allLines
+    .map((nombre, i) => nombre ? {
+      equipo,
+      numero: desde + i,
+      nombre_jugador: nombre,
+      siglas,
+      cd_repetidos: 0,
+      obtenido: false,
+    } : null)
+    .filter(Boolean);
 
   const { data, error } = await db.from('cromos').insert(nuevos).select();
 

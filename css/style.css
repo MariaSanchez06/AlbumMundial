@@ -548,7 +548,12 @@ body {
   padding: 5px 0;
   margin-bottom: 12px;
   border-bottom: 1.5px solid #f0f0f0;
+  cursor: pointer;
+  user-select: none;
 }
+.group-chevron { display: inline-block; transition: transform .2s; margin-right: 5px; font-size: .6rem; }
+.group-section.collapsed .group-chevron { transform: rotate(-90deg); }
+.group-section.collapsed .team-section { display: none; }
 .group-header-btns { display: flex; gap: 5px; align-items: center; flex-shrink: 0; }
 .btn-add-equipo-grupo {
   font-size: .68rem;
