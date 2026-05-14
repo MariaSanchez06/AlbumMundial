@@ -541,7 +541,6 @@ function renderInicio(container) {
       <button class="btn-abrir-sobre" id="btn-abrir-sobre">
         <img src="images/cajaCromos.jpg" class="btn-sobre-img" alt=""> Abrir sobre
       </button>
-      <img src="images/album.jpg" class="inicio-album-img" alt="Álbum Panini FIFA World Cup 2026">
       <div class="section-title">Equipos</div>
       <div class="inicio-teams-list">
         ${teamRows}

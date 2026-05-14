@@ -961,11 +961,6 @@ body {
   width: 48px; height: 48px; object-fit: cover;
   border-radius: 8px; flex-shrink: 0;
 }
-.inicio-album-img {
-  display: block; width: 100%; max-width: 340px;
-  margin: 18px auto 4px; border-radius: 16px;
-  box-shadow: 0 6px 24px rgba(0,0,0,.13);
-}
 
 /* Confetti */
 @keyframes confetti-fall {
