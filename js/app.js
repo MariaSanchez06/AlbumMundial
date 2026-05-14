@@ -65,8 +65,9 @@ const TEAM_COLORS = {
 };
 
 function teamColor(equipo) {
-  if (teamColorsDB[equipo]) return { bg: teamColorsDB[equipo] };
-  return TEAM_COLORS[equipo] || { bg: '#0d6b36' };
+  const base = TEAM_COLORS[equipo] || {};
+  const bg   = teamColorsDB[equipo] || base.bg || '#0d6b36';
+  return { bg, banner: base.banner };
 }
 function teamColorHex(equipo) {
   if (teamColorsDB[equipo]) return teamColorsDB[equipo];
