@@ -1,4 +1,4 @@
-const CACHE = 'album-mundial-v45';
+const CACHE = 'album-mundial-v46';
 const SHELL = [
   './',
   './index.html',
@@ -8,7 +8,7 @@ const SHELL = [
   './js/config.js',
   './js/app.js',
   './icons/icon.svg',
-  './icons/copa.png',
+  './icons/copa.png?v=2',
 ];
 
 self.addEventListener('install', e => {
