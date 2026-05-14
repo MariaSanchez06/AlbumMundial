@@ -539,7 +539,9 @@ function renderInicio(container) {
           <div class="inicio-stat-label">Sobres 💶</div>
         </div>
       </div>
-      <button class="btn-abrir-sobre" id="btn-abrir-sobre">📦 Abrir sobre</button>
+      <button class="btn-abrir-sobre" id="btn-abrir-sobre">
+        <img src="images/cromos.png" class="btn-sobre-img" alt=""> Abrir sobre
+      </button>
       <div class="section-title">Equipos</div>
       <div class="inicio-teams-list">
         ${teamRows}
