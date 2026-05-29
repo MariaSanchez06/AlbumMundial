@@ -613,6 +613,9 @@ const POS_ABBR = { 'Portero': 'POR', 'Defensa': 'DEF', 'Medio': 'MED', 'Delanter
 
 function posicionEfectiva(c) {
   if (c.posicion) return c.posicion;
+  const eq = (c.equipo || '').toUpperCase().trim();
+  if (eq === 'FWC' || eq.includes('FWC')) return 'FWC';
+  if (eq === 'COCA-COLA' || eq.includes('COCA') || eq.includes('COKE')) return 'Coke';
   const n = (c.nombre_jugador || '').toUpperCase().trim();
   if (n === 'ESCUDO') return 'Escudo';
   if (n === 'EQUIPO') return 'Equipo';
