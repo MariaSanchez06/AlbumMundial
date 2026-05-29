@@ -1002,20 +1002,19 @@ body {
 .inicio-team-fill { height: 100%; border-radius: 3px; transition: width .6s ease; }
 .inicio-team-nums { font-size: .75rem; color: var(--text-sub); width: 44px; text-align: right; white-space: nowrap; }
 
-/* Dashboard */
-.dashboard-podio { display: flex; gap: 10px; justify-content: center; align-items: flex-end; padding: 0 4px; }
-.podio-card {
-  flex: 1; max-width: 130px; background: white; border-radius: 14px;
-  padding: 12px 8px; text-align: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,.07); border: 1.5px solid var(--border);
-  display: flex; flex-direction: column; align-items: center; gap: 4px;
-}
-.podio-first { transform: translateY(-8px); box-shadow: 0 6px 20px rgba(0,0,0,.13); border-color: #fbbf2455; }
-.podio-rank { font-size: 1.1rem; font-weight: 900; font-family: 'Barlow Condensed', sans-serif; line-height: 1; }
-.podio-dot { width: 26px; height: 26px; border-radius: 50%; margin: 2px 0; }
-.podio-name { font-size: .62rem; font-weight: 800; letter-spacing: .3px; text-transform: uppercase; color: var(--text); word-break: break-word; line-height: 1.2; }
-.podio-pct { font-size: 1.2rem; font-weight: 900; font-family: 'Barlow Condensed', sans-serif; line-height: 1; }
-.podio-sub { font-size: .62rem; color: var(--text-sub); }
+/* Dashboard — Podio */
+.podio-list { background: white; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,.07); border: 1.5px solid var(--border); overflow: hidden; }
+.podio-row { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+.podio-row:last-child { border-bottom: none; }
+.podio-rank-badge { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .9rem; font-weight: 900; font-family: 'Barlow Condensed', sans-serif; flex-shrink: 0; }
+.podio-row-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+.podio-row-info { flex: 1; min-width: 0; }
+.podio-row-name { font-size: .82rem; font-weight: 800; text-transform: uppercase; letter-spacing: .3px; color: var(--text); }
+.podio-row-bar-wrap { height: 5px; background: #f0f0f0; border-radius: 3px; margin-top: 5px; overflow: hidden; }
+.podio-row-bar { height: 100%; border-radius: 3px; transition: width .6s ease; }
+.podio-row-right { text-align: right; flex-shrink: 0; }
+.podio-row-pct { font-size: 1.1rem; font-weight: 900; font-family: 'Barlow Condensed', sans-serif; line-height: 1; }
+.podio-row-count { font-size: .65rem; color: var(--text-sub); margin-top: 2px; }
 
 .dashboard-records { display: flex; gap: 10px; padding: 0 4px; }
 .record-card {

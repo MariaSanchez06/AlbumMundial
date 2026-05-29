@@ -500,21 +500,28 @@ function renderInicio(container) {
     return { eq, t, total: cr.length, faltan: cr.length - t, p, col: teamColor(eq) };
   });
 
-  // Podio: top 3 por % (solo equipos con al menos 1 cromo obtenido)
+  // Podio: clasificación con empates — todos los equipos que comparten posición 1, 2 o 3
+  const RANK_COLOR = { 1: '#d97706', 2: '#6b7280', 3: '#92400e' };
+  const RANK_BG    = { 1: '#fbbf2420', 2: '#9ca3af20', 3: '#cd7c3c20' };
   const podioSource = [...equipoStats].filter(s => s.t > 0).sort((a, b) => b.p - a.p || b.t - a.t);
-  const top3 = podioSource.slice(0, 3);
-  const podioDisplay = top3.length >= 3
-    ? [{ s: top3[1], rank: 1 }, { s: top3[0], rank: 0 }, { s: top3[2], rank: 2 }]
-    : top3.map((s, i) => ({ s, rank: i }));
-  const RANK_COLOR = ['#fbbf24', '#9ca3af', '#cd7c3c'];
-  const RANK_LABEL = ['1º', '2º', '3º'];
-  const podioHTML = podioDisplay.map(({ s, rank }) => `
-    <div class="podio-card ${rank === 0 ? 'podio-first' : ''}">
-      <div class="podio-rank" style="color:${RANK_COLOR[rank]}">${RANK_LABEL[rank]}</div>
-      <div class="podio-dot" style="background:${s.col.bg}"></div>
-      <div class="podio-name">${s.eq}</div>
-      <div class="podio-pct" style="color:${s.col.bg}">${s.p}%</div>
-      <div class="podio-sub">${s.t} de ${s.total}</div>
+  let podioRank = 1;
+  podioSource.forEach((s, i) => {
+    if (i > 0 && (s.p !== podioSource[i-1].p || s.t !== podioSource[i-1].t)) podioRank = i + 1;
+    s.rank = podioRank;
+  });
+  const podioTeams = podioSource.filter(s => s.rank <= 3);
+  const podioHTML = podioTeams.map(s => `
+    <div class="podio-row">
+      <div class="podio-rank-badge" style="background:${RANK_BG[s.rank]};color:${RANK_COLOR[s.rank]}">${s.rank}</div>
+      <div class="podio-row-dot" style="background:${s.col.bg}"></div>
+      <div class="podio-row-info">
+        <div class="podio-row-name">${s.eq}</div>
+        <div class="podio-row-bar-wrap"><div class="podio-row-bar" style="width:${s.p}%;background:${s.col.bg}"></div></div>
+      </div>
+      <div class="podio-row-right">
+        <div class="podio-row-pct" style="color:${s.col.bg}">${s.p}%</div>
+        <div class="podio-row-count">${s.t}/${s.total}</div>
+      </div>
     </div>`).join('');
 
   // Récords
@@ -575,7 +582,7 @@ function renderInicio(container) {
         <img src="images/cromos.png" class="btn-sobre-img" alt=""> Abrir sobre
       </button>
       <div class="section-title">Podio</div>
-      <div class="dashboard-podio">${podioHTML}</div>
+      <div class="podio-list">${podioHTML}</div>
       <div class="dashboard-records">
         ${maxObt ? `<div class="record-card">
           <div class="record-label">Más obtenidos</div>
