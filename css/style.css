@@ -1002,6 +1002,35 @@ body {
 .inicio-team-fill { height: 100%; border-radius: 3px; transition: width .6s ease; }
 .inicio-team-nums { font-size: .75rem; color: var(--text-sub); width: 44px; text-align: right; white-space: nowrap; }
 
+/* Dashboard */
+.dashboard-podio { display: flex; gap: 10px; justify-content: center; align-items: flex-end; padding: 0 4px; }
+.podio-card {
+  flex: 1; max-width: 130px; background: white; border-radius: 14px;
+  padding: 12px 8px; text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,.07); border: 1.5px solid var(--border);
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+}
+.podio-first { transform: translateY(-8px); box-shadow: 0 6px 20px rgba(0,0,0,.13); border-color: #fbbf2455; }
+.podio-rank { font-size: 1.1rem; font-weight: 900; font-family: 'Barlow Condensed', sans-serif; line-height: 1; }
+.podio-dot { width: 26px; height: 26px; border-radius: 50%; margin: 2px 0; }
+.podio-name { font-size: .62rem; font-weight: 800; letter-spacing: .3px; text-transform: uppercase; color: var(--text); word-break: break-word; line-height: 1.2; }
+.podio-pct { font-size: 1.2rem; font-weight: 900; font-family: 'Barlow Condensed', sans-serif; line-height: 1; }
+.podio-sub { font-size: .62rem; color: var(--text-sub); }
+
+.dashboard-records { display: flex; gap: 10px; padding: 0 4px; }
+.record-card {
+  flex: 1; background: white; border-radius: 14px; padding: 12px 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.07); border: 1.5px solid var(--border);
+  display: flex; flex-direction: column; gap: 4px;
+}
+.record-label { font-size: .62rem; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: var(--text-sub); }
+.record-dot { width: 18px; height: 18px; border-radius: 50%; margin: 2px 0; }
+.record-team { font-size: .75rem; font-weight: 800; text-transform: uppercase; color: var(--text); line-height: 1.2; }
+.record-val { font-size: 1.05rem; font-weight: 900; font-family: 'Barlow Condensed', sans-serif; }
+
+.dashboard-completed { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 4px; }
+.completed-chip { font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .4px; padding: 4px 12px; border-radius: 20px; }
+
 /* ===== Utility ===== */
 .mt-8  { margin-top: 8px; }
 .mb-0  { margin-bottom: 0; }

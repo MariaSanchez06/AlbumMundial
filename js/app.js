@@ -492,6 +492,38 @@ function renderInicio(container) {
   const sobres    = Math.floor(tengo / 5);
 
   const equipos = [...new Set(allCromos.map(c => c.equipo))].sort();
+
+  const equipoStats = equipos.map(eq => {
+    const cr = allCromos.filter(c => c.equipo === eq);
+    const t  = cr.filter(c => c.obtenido).length;
+    const p  = cr.length > 0 ? Math.round(t / cr.length * 100) : 0;
+    return { eq, t, total: cr.length, faltan: cr.length - t, p, col: teamColor(eq) };
+  });
+
+  // Podio: top 3 por % (solo equipos con al menos 1 cromo obtenido)
+  const podioSource = [...equipoStats].filter(s => s.t > 0).sort((a, b) => b.p - a.p || b.t - a.t);
+  const top3 = podioSource.slice(0, 3);
+  const podioDisplay = top3.length >= 3
+    ? [{ s: top3[1], rank: 1 }, { s: top3[0], rank: 0 }, { s: top3[2], rank: 2 }]
+    : top3.map((s, i) => ({ s, rank: i }));
+  const RANK_COLOR = ['#fbbf24', '#9ca3af', '#cd7c3c'];
+  const RANK_LABEL = ['1º', '2º', '3º'];
+  const podioHTML = podioDisplay.map(({ s, rank }) => `
+    <div class="podio-card ${rank === 0 ? 'podio-first' : ''}">
+      <div class="podio-rank" style="color:${RANK_COLOR[rank]}">${RANK_LABEL[rank]}</div>
+      <div class="podio-dot" style="background:${s.col.bg}"></div>
+      <div class="podio-name">${s.eq}</div>
+      <div class="podio-pct" style="color:${s.col.bg}">${s.p}%</div>
+      <div class="podio-sub">${s.t} de ${s.total}</div>
+    </div>`).join('');
+
+  // Récords
+  const maxObt  = equipoStats.length ? equipoStats.reduce((a, b) => b.t > a.t ? b : a) : null;
+  const maxFalt = equipoStats.length ? equipoStats.reduce((a, b) => b.faltan > a.faltan ? b : a) : null;
+
+  // Completados al 100%
+  const completados = equipoStats.filter(s => s.p === 100 && s.total > 0);
+
   const teamRows = equipos.map(eq => {
     const cr  = allCromos.filter(c => c.equipo === eq);
     const t   = cr.filter(c => c.obtenido).length;
@@ -542,6 +574,27 @@ function renderInicio(container) {
       <button class="btn-abrir-sobre" id="btn-abrir-sobre">
         <img src="images/cromos.png" class="btn-sobre-img" alt=""> Abrir sobre
       </button>
+      <div class="section-title">Podio</div>
+      <div class="dashboard-podio">${podioHTML}</div>
+      <div class="dashboard-records">
+        ${maxObt ? `<div class="record-card">
+          <div class="record-label">Más obtenidos</div>
+          <div class="record-dot" style="background:${maxObt.col.bg}"></div>
+          <div class="record-team">${maxObt.eq}</div>
+          <div class="record-val" style="color:${maxObt.col.bg}">${maxObt.t} cromos</div>
+        </div>` : ''}
+        ${maxFalt ? `<div class="record-card">
+          <div class="record-label">Más por completar</div>
+          <div class="record-dot" style="background:${maxFalt.col.bg}"></div>
+          <div class="record-team">${maxFalt.eq}</div>
+          <div class="record-val" style="color:#ef4444">${maxFalt.faltan} faltan</div>
+        </div>` : ''}
+      </div>
+      ${completados.length ? `
+      <div class="section-title">Completados</div>
+      <div class="dashboard-completed">
+        ${completados.map(s => `<span class="completed-chip" style="background:${s.col.bg}22;color:${s.col.bg};border:1.5px solid ${s.col.bg}44">${s.eq}</span>`).join('')}
+      </div>` : ''}
       <div class="section-title">Equipos</div>
       <div class="inicio-teams-list">
         ${teamRows}
