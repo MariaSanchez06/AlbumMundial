@@ -385,6 +385,10 @@ body {
 .pos-defensa   { background: #ec489922; color: #ec4899; }
 .pos-medio     { background: #f9731622; color: #f97316; }
 .pos-delantero { background: #2563eb22; color: #2563eb; }
+.pos-escudo    { background: #71717a22; color: #71717a; }
+.pos-equipo    { background: #0d6b3622; color: #0d6b36; }
+.pos-fwc       { background: #b4521222; color: #b45212; }
+.pos-coke      { background: #dc262622; color: #dc2626; }
 
 /* Repetidos */
 .cromo-card:not(.obtenido) .rep-control { display: none; }
@@ -423,30 +427,6 @@ body {
 }
 .btn-editar-cromo:hover { color: var(--gold); }
 
-/* Foto */
-.cromo-foto { display: none; }
-.cromo-visual.has-foto { padding: 0; height: 160px; overflow: hidden; }
-.cromo-visual.has-foto .cromo-foto { width: 100%; height: 100%; object-fit: contain; object-position: center; background: white; }
-.cromo-visual.has-foto .cromo-circle { display: none; }
-.cromo-card.has-foto .cromo-info { padding: 6px 10px 10px; }
-.cromo-card.has-foto .cromo-nombre { font-size: .88rem; font-weight: 800; }
-
-/* Badge ✓ sobre foto */
-.cromo-card.obtenido .cromo-visual.has-foto::after {
-  content: '✓';
-  position: absolute;
-  top: 8px; right: 8px;
-  width: 24px; height: 24px;
-  background: var(--green);
-  color: white;
-  border-radius: 50%;
-  font-size: .75rem;
-  font-weight: 800;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 8px rgba(13,107,54,.4);
-}
 
 /* Animación al marcar */
 @keyframes card-pop {

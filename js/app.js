@@ -608,33 +608,18 @@ function renderStats(container) {
     </div>`;
 }
 
-/* ===== Aplica la foto como fondo de toda la tarjeta ===== */
-function applyFoto(img) {
-  img.style.display = 'block';
-  const visual = img.closest('.cromo-visual');
-  visual.classList.add('has-foto');
-  visual.closest('.cromo-card').classList.add('has-foto');
-}
 
-/* ===== Image key: MEX_1 → images/players/MEX_1.jpg/.png ===== */
-function cromoImageKey(c) {
-  const prefix = (c.siglas && c.siglas.trim()) ? c.siglas.trim() : c.equipo.substring(0, 3);
-  return `${prefix.toUpperCase()}_${c.numero}`;
-}
-function cromoImageSrc(c) {
-  return `images/players/${cromoImageKey(c)}.jpg`;
-}
-function onFotoError(img) {
-  const pngSrc = img.src.replace(/\.jpg$/i, '.png');
-  if (!img.src.endsWith('.png')) {
-    img.onerror = () => img.remove();
-    img.src = pngSrc;
-  } else {
-    img.remove();
-  }
-}
+const POS_ABBR = { 'Portero': 'POR', 'Defensa': 'DEF', 'Medio': 'MED', 'Delantero': 'DEL', 'Escudo': 'ESC', 'Equipo': 'EQ', 'FWC': 'FWC', 'Coke': 'COKE' };
 
-const POS_ABBR = { 'Portero': 'POR', 'Defensa': 'DEF', 'Medio': 'MED', 'Delantero': 'DEL' };
+function posicionEfectiva(c) {
+  if (c.posicion) return c.posicion;
+  const n = (c.nombre_jugador || '').toUpperCase().trim();
+  if (n === 'ESCUDO') return 'Escudo';
+  if (n === 'EQUIPO') return 'Equipo';
+  if (n.includes('FWC')) return 'FWC';
+  if (n.includes('COKE') || n.includes('COCA')) return 'Coke';
+  return null;
+}
 
 /* ===== Cromo card HTML ===== */
 function cromoCard(c) {
@@ -642,8 +627,8 @@ function cromoCard(c) {
   const tag           = c.siglas || c.equipo.substring(0, 3);
   const circleStyle   = c.obtenido ? '' : `border-color:${col.bg};color:${col.bg}`;
   const circleContent = c.obtenido ? '✓' : c.numero;
-  const imgSrc        = cromoImageSrc(c);
-  const posBadge      = c.posicion ? `<span class="pos-badge pos-${c.posicion.toLowerCase()}">${POS_ABBR[c.posicion] || c.posicion}</span>` : '';
+  const pos           = posicionEfectiva(c);
+  const posBadge      = pos ? `<span class="pos-badge pos-${pos.toLowerCase()}">${POS_ABBR[pos] || pos}</span>` : '';
 
   return `
     <div class="cromo-card ${c.obtenido ? 'obtenido' : ''}"
@@ -654,11 +639,6 @@ function cromoCard(c) {
         <span class="cromo-num-badge">#${c.numero}</span>
       </div>
       <div class="cromo-visual">
-        <img class="cromo-foto"
-             src="${imgSrc}"
-             alt="${c.nombre_jugador}"
-             onload="applyFoto(this)"
-             onerror="onFotoError(this)">
         <div class="cromo-circle" style="${circleStyle}">${circleContent}</div>
       </div>
       <div class="cromo-info">
@@ -682,12 +662,6 @@ function bindCardEvents(container) {
   // Animación de entrada escalonada
   container.querySelectorAll('.cromo-card').forEach((card, i) => {
     card.style.setProperty('--delay', `${Math.min(i * 35, 400)}ms`);
-  });
-
-  // Imágenes ya cacheadas: onload no se dispara, aplicamos manualmente
-  container.querySelectorAll('.cromo-foto').forEach(img => {
-    if (img.complete && img.naturalHeight > 0) applyFoto(img);
-    else if (img.complete) img.remove(); // 404 cacheado
   });
 
   container.querySelectorAll('.btn-editar-cromo').forEach(btn => {
