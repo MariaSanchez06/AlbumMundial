@@ -761,7 +761,10 @@ function renderParaPegar(container) {
         <span class="pila-panel-title">Equipos en tu pila</span>
         <button class="pila-panel-close" id="btn-pila-cerrar">Listo</button>
       </div>
-      <div class="pila-panel-list">${pilaRows}</div>
+      <div class="pila-panel-search-wrap">
+        <input type="search" class="pila-panel-search" id="pila-search" placeholder="Buscar equipo..." autocomplete="off" inputmode="search">
+      </div>
+      <div class="pila-panel-list" id="pila-panel-list">${pilaRows}</div>
     </div>` : '';
 
   // Contenido principal según si hay pila o no
@@ -820,6 +823,18 @@ function renderParaPegar(container) {
       renderCurrentView();
     });
   });
+
+  const pilaSearchEl = document.getElementById('pila-search');
+  const pilaListEl   = document.getElementById('pila-panel-list');
+  if (pilaSearchEl) {
+    pilaSearchEl.addEventListener('input', () => {
+      const q = pilaSearchEl.value.trim().toLowerCase();
+      pilaListEl.querySelectorAll('.pila-row').forEach(row => {
+        row.style.display = row.dataset.equipo.toLowerCase().includes(q) ? '' : 'none';
+      });
+    });
+    pilaSearchEl.focus();
+  }
 }
 
 /* ===== Circular progress SVG ===== */

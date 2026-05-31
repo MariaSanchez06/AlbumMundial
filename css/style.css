@@ -1340,7 +1340,16 @@ body.dark .pila-panel-header { background: #16181f; }
   transition: opacity .15s;
 }
 .pila-panel-close:hover { opacity: .85; }
-.pila-panel-list { max-height: 280px; overflow-y: auto; }
+.pila-panel-search-wrap { padding: 10px 12px 6px; border-bottom: 1px solid var(--border); }
+.pila-panel-search {
+  width: 100%; padding: 8px 12px; border: 1.5px solid var(--border);
+  border-radius: 10px; font-size: .88rem; font-family: inherit;
+  color: var(--text); background: white; outline: none;
+  transition: border-color .2s;
+}
+.pila-panel-search:focus { border-color: var(--green); }
+body.dark .pila-panel-search { background: #252830; color: var(--text); border-color: var(--border); }
+.pila-panel-list { max-height: 260px; overflow-y: auto; }
 .pila-row {
   width: 100%; display: flex; align-items: center; gap: 10px;
   padding: 11px 16px; border-bottom: 1px solid var(--border);
