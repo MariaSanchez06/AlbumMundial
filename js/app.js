@@ -2,13 +2,15 @@
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* ===== State ===== */
-let allCromos  = [];
-let currentView = 'inicio';
-let searchTerm  = '';
-let equipoFilter = '';
-let gruposMap     = {};   // { equipo: grupo }
-let equiposReg    = [];   // [{ equipo, siglas, grupo, color }]
-let teamColorsDB  = {};   // { equipo: '#rrggbb' } — colores guardados por el usuario
+let allCromos      = [];
+let currentView    = 'inicio';
+let searchTerm     = '';
+let equipoFilter   = '';
+let posicionFilter = '';
+let viewMode       = localStorage.getItem('viewMode') || 'grid';
+let gruposMap     = {};
+let equiposReg    = [];
+let teamColorsDB  = {};
 
 /* ===== Team color map ===== */
 const TEAM_COLORS = {
@@ -176,12 +178,27 @@ function populateGruposDatalist() {
   dl.innerHTML = grupos.map(g => `<option value="${g}">`).join('');
 }
 
+/* ===== Dark mode ===== */
+function initDarkMode() {
+  const dark = localStorage.getItem('darkMode') === '1';
+  document.body.classList.toggle('dark', dark);
+  const btn = document.getElementById('btn-dark-mode');
+  if (btn) btn.textContent = dark ? '☀️' : '🌙';
+}
+function toggleDarkMode() {
+  const dark = document.body.classList.toggle('dark');
+  localStorage.setItem('darkMode', dark ? '1' : '0');
+  document.getElementById('btn-dark-mode').textContent = dark ? '☀️' : '🌙';
+}
+
 /* ===== Entry point ===== */
 document.addEventListener('DOMContentLoaded', async () => {
   if (SUPABASE_URL === 'TU_SUPABASE_URL') {
     showConfigError();
     return;
   }
+  initDarkMode();
+  document.getElementById('btn-dark-mode').addEventListener('click', toggleDarkMode);
   bindNav();
   bindSearch();
   bindModal();
@@ -226,9 +243,10 @@ function bindNav() {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      currentView = btn.dataset.view;
-      searchTerm  = '';
-      equipoFilter = '';
+      currentView    = btn.dataset.view;
+      searchTerm     = '';
+      equipoFilter   = '';
+      posicionFilter = '';
       document.getElementById('search-input').value = '';
       document.getElementById('equipo-select').value = '';
       document.getElementById('search-container').style.display =
@@ -289,8 +307,9 @@ function renderCurrentView() {
       renderGrid(content, applySearch(list), 'Sin obtener');
       break;
     }
-    case 'repetidos': renderGrid(content, applySearch(allCromos.filter(c => c.cd_repetidos > 0)), 'Repetidos'); break;
-    case 'stats':     renderStats(content); break;
+    case 'repetidos':    renderGrid(content, applySearch(allCromos.filter(c => c.cd_repetidos > 0)), 'Repetidos'); break;
+    case 'intercambios': renderIntercambios(content); break;
+    case 'stats':        renderStats(content); break;
   }
 }
 
@@ -308,23 +327,199 @@ function applySearch(list) {
 
 /* ===== Grid view ===== */
 function renderGrid(container, cromos, title) {
+  if (posicionFilter) cromos = cromos.filter(c => posicionEfectiva(c) === posicionFilter);
+
+  const posBar = renderPosFilter();
+
   if (cromos.length === 0) {
-    container.innerHTML = emptyState(
+    container.innerHTML = posBar + emptyState(
       currentView === 'repetidos' ? '📦' : '🔍',
       currentView === 'repetidos' ? 'No tienes repetidos' : 'Sin resultados',
       currentView === 'repetidos' ? 'Cuando tengas cromos repetidos aparecerán aquí.' : 'Prueba con otro término de búsqueda.'
     );
+    bindPosFilter(container);
     return;
   }
+
+  const isGrid   = viewMode === 'grid';
+  const gridBtn  = `<button class="btn-view-toggle" id="btn-view-toggle" title="${isGrid ? 'Vista lista' : 'Vista cuadrícula'}">${isGrid ? '☰' : '⊞'}</button>`;
+  const copyRep  = currentView === 'repetidos' ? `<button class="btn-section-action" id="btn-copiar-rep">📋 Copiar</button>` : '';
+  const copyFalt = currentView === 'faltan'    ? `<button class="btn-section-action" id="btn-copiar-faltan">📋 Copiar lista</button>` : '';
+
   container.innerHTML = `
+    ${posBar}
     <div class="section-title">
       ${title}
       <span class="section-count">${cromos.length}</span>
+      <div class="section-title-actions">${copyRep}${copyFalt}${gridBtn}</div>
     </div>
-    <div class="cromos-grid">
-      ${cromos.map(cromoCard).join('')}
+    ${isGrid
+      ? `<div class="cromos-grid">${cromos.map(cromoCard).join('')}</div>`
+      : `<div class="cromos-list">${cromos.map(cromoRow).join('')}</div>`
+    }`;
+
+  if (isGrid) bindCardEvents(container);
+  else        bindRowEvents(container);
+
+  document.getElementById('btn-view-toggle')?.addEventListener('click', () => {
+    viewMode = isGrid ? 'list' : 'grid';
+    localStorage.setItem('viewMode', viewMode);
+    renderCurrentView();
+  });
+  document.getElementById('btn-copiar-rep')?.addEventListener('click', () => {
+    const t = generarTextoRepetidos();
+    if (!t) { showToast('Sin repetidos', 'red'); return; }
+    navigator.clipboard.writeText(t).then(() => showToast('✓ Copiado al portapapeles', 'green'));
+  });
+  document.getElementById('btn-copiar-faltan')?.addEventListener('click', () => {
+    const t = generarTextoFaltan();
+    if (!t) { showToast('¡No faltan cromos!', 'green'); return; }
+    navigator.clipboard.writeText(t).then(() => showToast('✓ Lista copiada', 'green'));
+  });
+  bindPosFilter(container);
+}
+
+/* ===== Filtro por posición ===== */
+const POS_FILTER_LIST = [
+  { val: '',          lbl: 'Todos',    cls: '' },
+  { val: 'Portero',   lbl: 'POR',      cls: 'pos-portero' },
+  { val: 'Defensa',   lbl: 'DEF',      cls: 'pos-defensa' },
+  { val: 'Medio',     lbl: 'MED',      cls: 'pos-medio' },
+  { val: 'Delantero', lbl: 'DEL',      cls: 'pos-delantero' },
+];
+function renderPosFilter() {
+  return `<div class="pos-filter-bar">
+    ${POS_FILTER_LIST.map(p => `
+      <button class="pos-chip-filter ${p.cls}${posicionFilter === p.val ? ' active' : ''}" data-pos="${p.val}">
+        ${p.lbl}
+      </button>`).join('')}
+  </div>`;
+}
+function bindPosFilter(container) {
+  container.querySelectorAll('.pos-chip-filter').forEach(btn => {
+    btn.addEventListener('click', () => { posicionFilter = btn.dataset.pos; renderCurrentView(); });
+  });
+}
+
+/* ===== Vista lista (row) ===== */
+function cromoRow(c) {
+  const col = teamColor(c.equipo);
+  const tag = c.siglas || c.equipo.substring(0, 3);
+  const pos = posicionEfectiva(c);
+  const posBadge = pos ? `<span class="pos-badge pos-${pos.toLowerCase()}">${POS_ABBR[pos] || pos}</span>` : '';
+  return `
+    <div class="cromo-row${c.obtenido ? ' obtenido' : ''}"
+         data-id="${c.id}" data-obtenido="${c.obtenido}" data-rep="${c.cd_repetidos}">
+      <span class="cromo-row-dot" style="background:${col.bg}"></span>
+      <span class="cromo-row-num">#${c.numero}</span>
+      <span class="cromo-row-tag">${tag}</span>
+      <span class="cromo-row-name">${c.nombre_jugador}</span>
+      ${posBadge}
+      <span class="cromo-row-status${c.obtenido ? ' got' : ''}">${c.obtenido ? '✓' : '○'}</span>
     </div>`;
-  bindCardEvents(container);
+}
+
+function bindRowEvents(container) {
+  container.querySelectorAll('.cromo-row').forEach(row => {
+    row.addEventListener('click', async () => {
+      const id      = Number(row.dataset.id);
+      const current = row.dataset.obtenido === 'true';
+      const newVal  = !current;
+      const { error } = await db.from('cromos').update({ obtenido: newVal }).eq('id', id);
+      if (error) { showToast('Error al actualizar :(', 'red'); return; }
+      const cromo = allCromos.find(c => c.id === id);
+      cromo.obtenido = newVal;
+      updateHeaderStats();
+      showToast(newVal ? '✓ Cromo marcado como obtenido' : '○ Marcado como faltante', newVal ? 'green' : '');
+      if (newVal) {
+        const equipoCromos = allCromos.filter(c => c.equipo === cromo.equipo);
+        if (equipoCromos.every(c => c.obtenido)) celebrateTeam(cromo.equipo);
+      }
+      if (['faltan', 'repetidos'].includes(currentView)) {
+        setTimeout(() => renderCurrentView(), 400);
+      } else {
+        row.dataset.obtenido = newVal;
+        row.classList.toggle('obtenido', newVal);
+        const st = row.querySelector('.cromo-row-status');
+        st.textContent = newVal ? '✓' : '○';
+        st.className   = `cromo-row-status${newVal ? ' got' : ''}`;
+      }
+    });
+  });
+}
+
+/* ===== Copiar listas ===== */
+function generarTextoRepetidos() {
+  const reps = allCromos.filter(c => c.cd_repetidos > 0);
+  if (!reps.length) return '';
+  const byTeam = {};
+  reps.forEach(c => { (byTeam[c.equipo] = byTeam[c.equipo] || []).push(c); });
+  return '📦 REPETIDOS:\n' + Object.entries(byTeam).sort((a, b) => a[0].localeCompare(b[0], 'es'))
+    .map(([eq, cr]) => {
+      const tag   = cr[0].siglas || eq.substring(0, 3);
+      const items = cr.sort((a, b) => a.numero - b.numero)
+        .map(c => `#${c.numero} ${c.nombre_jugador}${c.cd_repetidos > 1 ? ' (×' + c.cd_repetidos + ')' : ''}`).join(', ');
+      return `${tag}: ${items}`;
+    }).join('\n');
+}
+function generarTextoFaltan() {
+  const faltan = allCromos.filter(c => !c.obtenido);
+  if (!faltan.length) return '';
+  const byTeam = {};
+  faltan.forEach(c => { (byTeam[c.equipo] = byTeam[c.equipo] || []).push(c); });
+  return '❌ FALTAN:\n' + Object.entries(byTeam).sort((a, b) => a[0].localeCompare(b[0], 'es'))
+    .map(([eq, cr]) => {
+      const tag   = cr[0].siglas || eq.substring(0, 3);
+      const items = cr.sort((a, b) => a.numero - b.numero).map(c => `#${c.numero}`).join(', ');
+      return `${tag}: ${items}`;
+    }).join('\n');
+}
+
+/* ===== Vista Intercambios ===== */
+function renderIntercambios(container) {
+  const reps = allCromos.filter(c => c.cd_repetidos > 0);
+  if (!reps.length) {
+    container.innerHTML = emptyState('📦', 'Sin repetidos', 'Cuando tengas cromos repetidos aparecerán aquí para intercambiar.');
+    return;
+  }
+  const byTeam = {};
+  reps.forEach(c => { (byTeam[c.equipo] = byTeam[c.equipo] || []).push(c); });
+  const total = reps.reduce((s, c) => s + c.cd_repetidos, 0);
+
+  const groups = Object.entries(byTeam).sort((a, b) => a[0].localeCompare(b[0], 'es'))
+    .map(([eq, cromos]) => {
+      const col = teamColor(eq);
+      const cnt = cromos.reduce((s, c) => s + c.cd_repetidos, 0);
+      const items = cromos.sort((a, b) => a.numero - b.numero).map(c => `
+        <div class="interc-item">
+          <span class="interc-num">#${c.numero}</span>
+          <span class="interc-nombre">${c.nombre_jugador}</span>
+          <span class="interc-rep-badge" style="background:${col.bg}22;color:${col.bg}">×${c.cd_repetidos}</span>
+        </div>`).join('');
+      return `
+        <div class="interc-group">
+          <div class="interc-header" style="border-left:4px solid ${col.bg}">
+            <span class="interc-team-name" style="color:${col.bg}">${eq}</span>
+            <span class="interc-count-badge">${cnt} rep.</span>
+          </div>
+          <div class="interc-items">${items}</div>
+        </div>`;
+    }).join('');
+
+  container.innerHTML = `
+    <div class="section-title">
+      Intercambios
+      <span class="section-count">${total} repetidos</span>
+      <div class="section-title-actions">
+        <button class="btn-section-action" id="btn-copiar-interc">📋 Copiar todo</button>
+      </div>
+    </div>
+    ${groups}`;
+
+  document.getElementById('btn-copiar-interc').addEventListener('click', () => {
+    const t = generarTextoRepetidos();
+    navigator.clipboard.writeText(t).then(() => showToast('✓ Copiado al portapapeles', 'green'));
+  });
 }
 
 /* ===== Equipos view ===== */
@@ -382,6 +577,9 @@ function renderEquipos(container) {
               <div class="team-pct">${tengo}/${total}</div>
             </div>
             <span style="color:var(--gold);font-weight:700">${pct}%</span>
+            ${pct === 100
+              ? `<span class="team-complete-badge">✓</span>`
+              : (total - tengo <= 5 && total > 0 ? `<span class="team-missing-badge">falta${total - tengo === 1 ? '' : 'n'} ${total - tengo}</span>` : '')}
             <span class="team-chevron">▼</span>
           </div>
           ${total > 0
@@ -638,6 +836,20 @@ function renderStats(container) {
       </div>`;
   }).join('');
 
+  const posRows = ['Portero', 'Defensa', 'Medio', 'Delantero'].map(pos => {
+    const cr = allCromos.filter(c => posicionEfectiva(c) === pos);
+    if (!cr.length) return '';
+    const t  = cr.filter(c => c.obtenido).length;
+    const p  = Math.round(t / cr.length * 100);
+    const cls = POS_COLOR_CLASS[pos] || '';
+    return `
+      <div class="stats-team-row">
+        <span class="pos-badge ${cls}" style="min-width:40px;text-align:center">${POS_ABBR[pos]}</span>
+        <div class="stats-team-bar"><div class="stats-team-fill" style="width:${p}%"></div></div>
+        <span class="stats-team-nums">${t}/${cr.length}</span>
+      </div>`;
+  }).filter(Boolean).join('');
+
   container.innerHTML = `
     <div class="stats-page">
       <div class="stats-hero">
@@ -661,6 +873,11 @@ function renderStats(container) {
           <div class="stat-card-label">Faltan</div>
         </div>
       </div>
+      ${posRows ? `
+      <div class="stats-teams">
+        <div class="stats-teams-title">Por posición</div>
+        ${posRows}
+      </div>` : ''}
       <div class="stats-teams">
         <div class="stats-teams-title">Por equipo</div>
         ${teamRows}
@@ -1302,12 +1519,25 @@ function renderSobreResults() {
   let matches = allCromos;
   if (equipoFilt) matches = matches.filter(c => c.equipo === equipoFilt);
   if (query) {
-    const q = norm(query);
-    matches = matches.filter(c =>
-      norm(c.nombre_jugador).includes(q) ||
-      norm(c.equipo).includes(q) ||
-      (c.siglas && norm(c.siglas).includes(q))
-    );
+    const numOnly = /^\d+$/.test(query);
+    const teamNum = /^([^\d\s]\S*)\s+(\d+)$/i.exec(query);
+    if (numOnly && equipoFilt) {
+      matches = matches.filter(c => String(c.numero) === query);
+    } else if (teamNum) {
+      const siglaQ = norm(teamNum[1]);
+      const numQ   = teamNum[2];
+      matches = allCromos.filter(c =>
+        (norm(c.siglas || '').startsWith(siglaQ) || norm(c.equipo).startsWith(siglaQ)) &&
+        String(c.numero) === numQ
+      );
+    } else {
+      const q = norm(query);
+      matches = matches.filter(c =>
+        norm(c.nombre_jugador).includes(q) ||
+        norm(c.equipo).includes(q) ||
+        (c.siglas && norm(c.siglas).includes(q))
+      );
+    }
   }
   if (!equipoFilt) matches = matches.slice(0, 12);
 

@@ -1084,6 +1084,143 @@ body {
 .dashboard-completed { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 4px; }
 .completed-chip { font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .4px; padding: 4px 12px; border-radius: 20px; }
 
+/* ===== Dark mode ===== */
+body.dark {
+  --bg: #111318; --card: #1c1f26; --border: #2a2d35;
+  --text: #e8eaf0; --text-sub: #6b7280;
+  --green-light: #0d3320; --shadow: 0 2px 16px rgba(0,0,0,.3);
+  --shadow-lg: 0 8px 40px rgba(0,0,0,.4);
+}
+body.dark body                    { background: var(--bg); }
+body.dark .header                 { background: rgba(17,19,24,.88); }
+body.dark .nav-inner              { background: var(--card); box-shadow: 0 4px 24px rgba(0,0,0,.3), 0 0 0 1px rgba(255,255,255,.06); }
+body.dark .nav-btn:hover          { background: rgba(255,255,255,.06); color: var(--text); }
+body.dark .cromo-card             { background: var(--card); border-color: var(--border); }
+body.dark .cromo-circle           { background: #252830; border-color: var(--border); color: var(--text-sub); }
+body.dark .cromo-footer           { background: #16181f; border-top-color: var(--border); }
+body.dark .cromo-card.obtenido .cromo-footer { background: var(--green-light); }
+body.dark .cromo-nombre           { color: var(--text); }
+body.dark .team-header            { background: var(--card); border-color: var(--border); }
+body.dark .modal-panel            { background: var(--card); }
+body.dark .modal-header           { background: var(--card); border-color: var(--border); }
+body.dark .form-group input,
+body.dark .form-group select,
+body.dark .form-group textarea    { background: #252830; border-color: var(--border); color: var(--text); }
+body.dark .stats-teams,
+body.dark .stat-card,
+body.dark .inicio-stat,
+body.dark .record-card,
+body.dark .podio-list,
+body.dark .inicio-teams-list      { background: var(--card); border-color: var(--border); }
+body.dark .sobre-result-row       { background: var(--card); border-color: var(--border); }
+body.dark .sobre-obtenido         { background: var(--green-light); }
+body.dark .sobre-pos-badge,
+body.dark .pos-chip               { border-color: var(--border); }
+body.dark .pos-none               { background: #2a2d35; color: #9ca3af; }
+body.dark .preview-wrap           { background: #1c1f26; }
+body.dark .sobre-equipo-filter,
+body.dark .sobre-search-input     { background: #252830; color: var(--text); border-color: var(--border); }
+body.dark .sobre-pos-picker       { background: #16181f; border-top-color: var(--border); }
+body.dark .cromo-row              { background: var(--card); border-color: var(--border); }
+body.dark .cromo-row.obtenido     { background: var(--green-light); }
+body.dark .interc-group           { background: var(--card); border-color: var(--border); }
+body.dark .search-bar input,
+body.dark .equipo-select select   { background: var(--card); color: var(--text); border-color: var(--border); }
+body.dark .rep-btn                { background: #252830; border-color: var(--border); }
+
+.btn-dark-toggle {
+  background: rgba(0,0,0,.06); border: 1.5px solid rgba(0,0,0,.08);
+  border-radius: 50%; width: 36px; height: 36px;
+  font-size: 1rem; cursor: pointer; display: flex;
+  align-items: center; justify-content: center;
+  transition: background .2s; flex-shrink: 0;
+}
+.btn-dark-toggle:hover { background: rgba(0,0,0,.12); }
+body.dark .btn-dark-toggle { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.12); }
+body.dark .btn-dark-toggle:hover { background: rgba(255,255,255,.14); }
+
+/* ===== Filtro posición ===== */
+.pos-filter-bar { display: flex; gap: 6px; padding: 0 0 12px; flex-wrap: wrap; }
+.pos-chip-filter {
+  font-size: .75rem; font-weight: 800; padding: 5px 13px;
+  border-radius: 100px; border: 1.5px solid transparent;
+  cursor: pointer; font-family: inherit; letter-spacing: .4px;
+  text-transform: uppercase; transition: opacity .15s, transform .1s;
+  background: #f0f0f0; color: #9a9a9a;
+}
+.pos-chip-filter:hover { opacity: .8; transform: scale(1.04); }
+.pos-chip-filter.active { border-color: currentColor; }
+.pos-chip-filter.pos-portero   { background: #7c3aed22; color: #7c3aed; }
+.pos-chip-filter.pos-defensa   { background: #ec489922; color: #ec4899; }
+.pos-chip-filter.pos-medio     { background: #f9731622; color: #f97316; }
+.pos-chip-filter.pos-delantero { background: #2563eb22; color: #2563eb; }
+
+/* ===== Section title actions ===== */
+.section-title-actions { display: flex; gap: 6px; align-items: center; margin-left: auto; }
+.btn-section-action {
+  font-size: .75rem; font-weight: 700; padding: 5px 12px;
+  border-radius: 100px; background: var(--green); color: white;
+  border: none; cursor: pointer; font-family: inherit;
+  transition: opacity .15s; white-space: nowrap;
+}
+.btn-section-action:hover { opacity: .85; }
+.btn-view-toggle {
+  font-size: .95rem; background: rgba(0,0,0,.06); border: none;
+  border-radius: 8px; width: 30px; height: 30px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s; flex-shrink: 0;
+}
+.btn-view-toggle:hover { background: rgba(0,0,0,.12); }
+body.dark .btn-view-toggle { background: rgba(255,255,255,.08); color: var(--text); }
+
+/* ===== Vista lista (cromo-row) ===== */
+.cromos-list { display: flex; flex-direction: column; gap: 4px; }
+.cromo-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 12px; background: white;
+  border: 1px solid var(--border); border-radius: 12px;
+  cursor: pointer; user-select: none;
+  transition: background .15s, border-color .15s;
+}
+.cromo-row:hover    { border-color: var(--green); background: #f8fffe; }
+.cromo-row.obtenido { border-color: rgba(13,107,54,.3); background: var(--green-light); }
+.cromo-row-dot  { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.cromo-row-num  { font-family: 'Barlow Condensed', sans-serif; font-size: .8rem; font-weight: 800; color: var(--text-sub); min-width: 36px; }
+.cromo-row-tag  { font-family: 'Barlow Condensed', sans-serif; font-size: .75rem; font-weight: 700; color: var(--text-sub); min-width: 36px; text-transform: uppercase; letter-spacing: .3px; }
+.cromo-row-name { font-size: .85rem; font-weight: 600; color: var(--text); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cromo-row-status { font-size: .8rem; font-weight: 700; color: #ccc; flex-shrink: 0; }
+.cromo-row-status.got { color: var(--green); }
+
+/* ===== Team missing/complete badges ===== */
+.team-missing-badge {
+  background: var(--red); color: white; border-radius: 100px;
+  padding: 2px 8px; font-size: .68rem; font-weight: 800;
+  white-space: nowrap; flex-shrink: 0;
+}
+.team-complete-badge { color: var(--green); font-weight: 900; font-size: 1.1rem; flex-shrink: 0; }
+
+/* ===== Intercambios ===== */
+.interc-group {
+  background: white; border: 1.5px solid var(--border);
+  border-radius: var(--radius); margin-bottom: 10px; overflow: hidden;
+}
+.interc-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; background: #fafafa; border-bottom: 1px solid var(--border);
+}
+.interc-team-name { font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; font-weight: 800; text-transform: uppercase; letter-spacing: .3px; }
+.interc-count-badge { font-size: .72rem; font-weight: 800; color: var(--text-sub); background: #f0f0f0; padding: 2px 8px; border-radius: 20px; }
+.interc-items { padding: 4px 0; }
+.interc-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 14px; border-bottom: 1px solid var(--border);
+}
+.interc-item:last-child { border-bottom: none; }
+.interc-num    { font-family: 'Barlow Condensed', sans-serif; font-size: .9rem; font-weight: 800; color: var(--text-sub); min-width: 36px; }
+.interc-nombre { font-size: .85rem; font-weight: 600; color: var(--text); flex: 1; }
+.interc-rep-badge { font-size: .72rem; font-weight: 800; padding: 2px 8px; border-radius: 100px; flex-shrink: 0; }
+body.dark .interc-header { background: #16181f; }
+
 /* ===== Utility ===== */
 .mt-8  { margin-top: 8px; }
 .mb-0  { margin-bottom: 0; }
