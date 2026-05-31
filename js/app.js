@@ -321,7 +321,24 @@ const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 
 function applySearch(list) {
   if (!searchTerm) return list;
-  const q = norm(searchTerm);
+  const q = norm(searchTerm.trim());
+
+  // Solo número: "20" → cromo #20
+  if (/^\d+$/.test(q)) {
+    return list.filter(c => String(c.numero) === q);
+  }
+
+  // Siglas/equipo + número: "SWE 20", "ARG 5"
+  const teamNum = /^([^\d\s]\S*)\s+(\d+)$/.exec(q);
+  if (teamNum) {
+    const siglaQ = teamNum[1], numQ = teamNum[2];
+    return list.filter(c =>
+      String(c.numero) === numQ &&
+      (norm(c.siglas || '').startsWith(siglaQ) || norm(c.equipo).startsWith(siglaQ))
+    );
+  }
+
+  // Texto libre: nombre, equipo o siglas
   return list.filter(c =>
     norm(c.nombre_jugador).includes(q) ||
     norm(c.equipo).includes(q) ||
