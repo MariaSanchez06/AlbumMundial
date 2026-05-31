@@ -976,25 +976,44 @@ body {
 .sobre-equipo-filter:focus, .sobre-search-input:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(13,107,54,.1); }
 
 .sobre-result-row {
-  display: flex; align-items: center; justify-content: space-between;
   background: white; border: 1.5px solid var(--border); border-radius: 12px;
-  padding: 10px 12px; margin-bottom: 8px; gap: 8px;
+  margin-bottom: 8px; overflow: hidden;
 }
 .sobre-obtenido { background: var(--green-light); border-color: rgba(13,107,54,.2); }
+.sobre-result-main  { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; gap: 8px; }
 .sobre-result-left  { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
 .sobre-result-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 .sobre-result-num   { font-size: 1rem; font-weight: 800; color: var(--text-sub); min-width: 32px; }
 .sobre-result-info  { flex: 1; display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 .sobre-result-name  { font-size: .85rem; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sobre-result-equipo { font-size: .68rem; color: var(--text-sub); text-transform: uppercase; letter-spacing: .4px; }
-.sobre-pos-select {
-  font-size: .72rem; padding: 5px 4px;
-  border: 1.5px solid var(--border); border-radius: 8px;
-  background: white; color: var(--text); outline: none;
-  cursor: pointer; font-family: inherit; max-width: 74px;
-  transition: border-color .15s;
+
+/* Badge de posición (pulsar abre el picker) */
+.sobre-pos-badge {
+  font-size: .65rem; font-weight: 800; padding: 4px 8px;
+  border-radius: 8px; border: 1.5px solid transparent; cursor: pointer;
+  font-family: inherit; letter-spacing: .4px; text-transform: uppercase;
+  transition: opacity .15s, transform .1s; flex-shrink: 0; min-width: 30px; text-align: center;
 }
-.sobre-pos-select:focus { border-color: var(--green); }
+.sobre-pos-badge:hover { opacity: .8; transform: scale(1.06); }
+
+/* Picker de posición desplegable */
+.sobre-pos-picker {
+  display: flex; flex-wrap: wrap; gap: 5px;
+  padding: 8px 12px 10px; border-top: 1px solid #f0f0f0; background: #f8f8f8;
+}
+.sobre-pos-picker[hidden] { display: none; }
+
+/* Chips de posición */
+.pos-chip {
+  font-size: .65rem; font-weight: 800; padding: 5px 9px;
+  border-radius: 8px; border: 2px solid transparent; cursor: pointer;
+  font-family: inherit; letter-spacing: .4px; text-transform: uppercase;
+  transition: transform .12s, box-shadow .15s;
+}
+.pos-chip:hover   { transform: scale(1.1); }
+.pos-chip.selected { box-shadow: 0 0 0 2px currentColor; }
+.pos-none { background: #f0f0f0; color: #9a9a9a; border-color: #e0e0e0; }
 .sobre-action-btn {
   font-size: .72rem; font-weight: 700; padding: 6px 9px;
   border: none; border-radius: 8px; cursor: pointer;

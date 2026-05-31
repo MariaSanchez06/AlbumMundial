@@ -1246,7 +1246,12 @@ function celebrateTeam(equipo) {
 let sobreCount = 0;
 let sobreHadChanges = false;
 
-const POS_OPTIONS = ['', 'Portero', 'Defensa', 'Medio', 'Delantero', 'Escudo', 'Equipo', 'FWC', 'Coke'];
+const POS_OPTIONS     = ['', 'Portero', 'Defensa', 'Medio', 'Delantero', 'Escudo', 'Equipo', 'FWC', 'Coke'];
+const POS_COLOR_CLASS = {
+  '': 'pos-none', 'Portero': 'pos-portero', 'Defensa': 'pos-defensa',
+  'Medio': 'pos-medio', 'Delantero': 'pos-delantero', 'Escudo': 'pos-escudo',
+  'Equipo': 'pos-equipo', 'FWC': 'pos-fwc', 'Coke': 'pos-coke',
+};
 
 function openSobreModal() {
   sobreCount = 0;
@@ -1311,52 +1316,77 @@ function renderSobreResults() {
     return;
   }
 
-  container.innerHTML = matches.map(c => `
-    <div class="sobre-result-row${c.obtenido ? ' sobre-obtenido' : ''}" data-id="${c.id}">
-      <div class="sobre-result-left">
-        <span class="sobre-result-num">#${c.numero}</span>
-        <div class="sobre-result-info">
-          <span class="sobre-result-name">${c.nombre_jugador || '—'}</span>
-          <span class="sobre-result-equipo">${c.equipo}</span>
+  container.innerHTML = matches.map(c => {
+    const pos    = c.posicion || '';
+    const posCls = POS_COLOR_CLASS[pos] || 'pos-none';
+    const posLbl = POS_ABBR[pos] || '—';
+    return `
+      <div class="sobre-result-row${c.obtenido ? ' sobre-obtenido' : ''}" data-id="${c.id}">
+        <div class="sobre-result-main">
+          <div class="sobre-result-left">
+            <span class="sobre-result-num">#${c.numero}</span>
+            <div class="sobre-result-info">
+              <span class="sobre-result-name">${c.nombre_jugador || '—'}</span>
+              <span class="sobre-result-equipo">${c.equipo}</span>
+            </div>
+          </div>
+          <div class="sobre-result-right">
+            <button class="sobre-pos-badge ${posCls}" data-id="${c.id}" title="Posición">${posLbl}</button>
+            <button class="sobre-action-btn ${c.obtenido ? 'sobre-btn-rep' : 'sobre-btn-get'}" data-id="${c.id}">
+              ${c.obtenido ? `+Rep${c.cd_repetidos > 0 ? ' (' + c.cd_repetidos + ')' : ''}` : '✓'}
+            </button>
+          </div>
         </div>
-      </div>
-      <div class="sobre-result-right">
-        <select class="sobre-pos-select" data-id="${c.id}" title="Posición">
-          ${POS_OPTIONS.map(p => `<option value="${p}"${(c.posicion || '') === p ? ' selected' : ''}>${p || '—'}</option>`).join('')}
-        </select>
-        <button class="sobre-action-btn ${c.obtenido ? 'sobre-btn-rep' : 'sobre-btn-get'}" data-id="${c.id}">
-          ${c.obtenido ? `+Rep${c.cd_repetidos > 0 ? ' (' + c.cd_repetidos + ')' : ''}` : '✓'}
-        </button>
-      </div>
-    </div>`).join('');
+        <div class="sobre-pos-picker" hidden>
+          ${POS_OPTIONS.map(p => {
+            const cls = POS_COLOR_CLASS[p] || 'pos-none';
+            const lbl = POS_ABBR[p] || '—';
+            return `<button class="pos-chip ${cls}${pos === p ? ' selected' : ''}" data-pos="${p}" data-id="${c.id}">${lbl}</button>`;
+          }).join('')}
+        </div>
+      </div>`;
+  }).join('');
 
-  container.querySelectorAll('.sobre-pos-select').forEach(sel => {
-    sel.addEventListener('change', async e => {
+  // Toggle picker al pulsar el badge de posición
+  container.querySelectorAll('.sobre-pos-badge').forEach(badge => {
+    badge.addEventListener('click', e => {
       e.stopPropagation();
-      const id = Number(sel.dataset.id);
-      const posicion = sel.value;
+      const picker = badge.closest('.sobre-result-row').querySelector('.sobre-pos-picker');
+      picker.hidden = !picker.hidden;
+    });
+  });
+
+  // Seleccionar posición con chip
+  container.querySelectorAll('.pos-chip').forEach(chip => {
+    chip.addEventListener('click', async e => {
+      e.stopPropagation();
+      const id      = Number(chip.dataset.id);
+      const posicion = chip.dataset.pos;
       const { error } = await db.from('cromos').update({ posicion }).eq('id', id);
       if (error) { showToast('Error al guardar posición', 'red'); return; }
       allCromos.find(c => c.id === id).posicion = posicion;
       sobreHadChanges = true;
+      const row = chip.closest('.sobre-result-row');
+      const badge = row.querySelector('.sobre-pos-badge');
+      badge.className = `sobre-pos-badge ${POS_COLOR_CLASS[posicion] || 'pos-none'}`;
+      badge.textContent = POS_ABBR[posicion] || '—';
+      row.querySelectorAll('.pos-chip').forEach(ch => ch.classList.toggle('selected', ch.dataset.pos === posicion));
+      row.querySelector('.sobre-pos-picker').hidden = true;
       showToast('✓ Posición guardada', 'green', 1200);
     });
   });
 
+  // Marcar como obtenido
   container.querySelectorAll('.sobre-btn-get').forEach(btn => {
     btn.addEventListener('click', async () => {
       const id    = Number(btn.dataset.id);
       const cromo = allCromos.find(c => c.id === id);
       if (!cromo || cromo.obtenido) return;
-      const posSelect = container.querySelector(`.sobre-pos-select[data-id="${id}"]`);
-      const posicion  = posSelect?.value || '';
       btn.disabled = true;
       btn.textContent = '...';
-      const updates = { obtenido: true, posicion };
-      const { error } = await db.from('cromos').update(updates).eq('id', id);
+      const { error } = await db.from('cromos').update({ obtenido: true }).eq('id', id);
       if (error) { btn.disabled = false; btn.textContent = '✓'; showToast('Error al guardar', 'red'); return; }
       cromo.obtenido = true;
-      cromo.posicion = posicion;
       sobreCount++;
       sobreHadChanges = true;
       document.getElementById('sobre-count').textContent = sobreCount;
@@ -1373,9 +1403,9 @@ function renderSobreResults() {
     });
   });
 
+  // Añadir repetido
   container.querySelectorAll('.sobre-btn-rep').forEach(btn => {
-    const id    = Number(btn.dataset.id);
-    const cromo = allCromos.find(c => c.id === id);
+    const cromo = allCromos.find(c => c.id === Number(btn.dataset.id));
     btn.addEventListener('click', () => handleSobreRep(btn, cromo));
   });
 }
