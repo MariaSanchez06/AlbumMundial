@@ -9,6 +9,7 @@ let equipoFilter   = '';
 let posicionFilter = '';
 let viewMode       = localStorage.getItem('viewMode') || 'grid';
 let paginasMap     = JSON.parse(localStorage.getItem('paginas_map') || '{}');
+let pilaEquipos    = new Set();
 let gruposMap     = {};
 let equiposReg    = [];
 let teamColorsDB  = {};
@@ -371,12 +372,12 @@ function renderGrid(container, cromos, title) {
   document.getElementById('btn-copiar-rep')?.addEventListener('click', () => {
     const t = generarTextoRepetidos();
     if (!t) { showToast('Sin repetidos', 'red'); return; }
-    navigator.clipboard.writeText(t).then(() => showToast('✓ Copiado al portapapeles', 'green'));
+    copyText(t, '✓ Copiado al portapapeles');
   });
   document.getElementById('btn-copiar-faltan')?.addEventListener('click', () => {
     const t = generarTextoFaltan();
     if (!t) { showToast('¡No faltan cromos!', 'green'); return; }
-    navigator.clipboard.writeText(t).then(() => showToast('✓ Lista copiada', 'green'));
+    copyText(t, '✓ Lista copiada');
   });
   bindPosFilter(container);
 }
@@ -520,7 +521,7 @@ function renderIntercambios(container) {
 
   document.getElementById('btn-copiar-interc').addEventListener('click', () => {
     const t = generarTextoRepetidos();
-    navigator.clipboard.writeText(t).then(() => showToast('✓ Copiado al portapapeles', 'green'));
+    copyText(t, '✓ Copiado al portapapeles');
   });
 }
 
@@ -693,18 +694,28 @@ function renderParaPegar(container) {
     return;
   }
 
-  const conPagina  = conObtenidos.filter(eq =>  paginasMap[eq]).sort((a, b) => paginasMap[a] - paginasMap[b]);
-  const sinPagina  = conObtenidos.filter(eq => !paginasMap[eq]).sort((a, b) => a.localeCompare(b, 'es'));
+  // Ordenar todos los equipos con obtenidos: primero los que tienen página (asc), luego el resto
+  const todosOrdenados = [...conObtenidos].sort((a, b) => {
+    const pa = paginasMap[a], pb = paginasMap[b];
+    if (pa && pb) return pa - pb;
+    if (pa) return -1;
+    if (pb) return  1;
+    return a.localeCompare(b, 'es');
+  });
 
-  function groupHTML(eq) {
-    const col      = teamColor(eq);
+  function groupHTML(eq, ordenNum) {
+    const col       = teamColor(eq);
     const obtenidos = allCromos.filter(c => c.equipo === eq && c.obtenido).sort((a, b) => a.numero - b.numero);
-    const total    = allCromos.filter(c => c.equipo === eq).length;
-    const pagina   = paginasMap[eq];
-    const pct      = Math.round(obtenidos.length / total * 100);
+    const total     = allCromos.filter(c => c.equipo === eq).length;
+    const pagina    = paginasMap[eq];
+    const pct       = Math.round(obtenidos.length / total * 100);
+    const ordenBadge = ordenNum != null
+      ? `<span class="pegar-orden-num">${ordenNum}º</span>`
+      : '';
     return `
       <div class="pegar-group">
         <div class="pegar-header" style="border-left:4px solid ${col.bg}">
+          ${ordenBadge}
           <span class="pegar-page-badge" style="background:${col.bg}18;color:${col.bg}">
             ${pagina ? `Pág. ${pagina}` : '—'}
           </span>
@@ -722,17 +733,69 @@ function renderParaPegar(container) {
       </div>`;
   }
 
-  const sinPaginaSection = sinPagina.length ? `
-    <div class="pegar-subsection-title">Sin página asignada — edítala en Equipos</div>
-    ${sinPagina.map(groupHTML).join('')}` : '';
+  // Selector de pila
+  const pilaChips = todosOrdenados.map(eq => {
+    const col = teamColor(eq);
+    const sel = pilaEquipos.has(eq);
+    const pag = paginasMap[eq] ? ` · p.${paginasMap[eq]}` : '';
+    return `<button class="pila-chip${sel ? ' selected' : ''}" data-equipo="${eq}"
+      style="${sel
+        ? `background:${col.bg};color:white;border-color:${col.bg}`
+        : `border-color:${col.bg};color:${col.bg}`}">
+      ${eq}${pag}
+    </button>`;
+  }).join('');
+
+  const limpiarBtn = pilaEquipos.size > 0
+    ? `<button class="pila-limpiar" id="btn-pila-limpiar">✕ Limpiar</button>`
+    : '';
+
+  // Contenido principal según si hay pila o no
+  let mainContent;
+  if (pilaEquipos.size > 0) {
+    // Solo equipos de la pila, ordenados por página
+    const pilaOrdenada = [...pilaEquipos].filter(eq => conObtenidos.includes(eq)).sort((a, b) => {
+      const pa = paginasMap[a], pb = paginasMap[b];
+      if (pa && pb) return pa - pb;
+      if (pa) return -1;
+      if (pb) return  1;
+      return a.localeCompare(b, 'es');
+    });
+    mainContent = `
+      <div class="pila-orden-header">Orden para pegar tu pila</div>
+      ${pilaOrdenada.map((eq, i) => groupHTML(eq, i + 1)).join('')}`;
+  } else {
+    const conPagina = todosOrdenados.filter(eq =>  paginasMap[eq]);
+    const sinPagina = todosOrdenados.filter(eq => !paginasMap[eq]);
+    const sinPaginaSection = sinPagina.length ? `
+      <div class="pegar-subsection-title">Sin página asignada — edítala en Equipos</div>
+      ${sinPagina.map(eq => groupHTML(eq, null)).join('')}` : '';
+    mainContent = conPagina.map(eq => groupHTML(eq, null)).join('') + sinPaginaSection;
+  }
 
   container.innerHTML = `
     <div class="section-title">
       Para pegar
       <span class="section-count">${conObtenidos.length} equipos</span>
     </div>
-    ${conPagina.map(groupHTML).join('')}
-    ${sinPaginaSection}`;
+    <div class="pila-selector">
+      <div class="pila-selector-label">Selecciona equipos de tu pila${limpiarBtn}</div>
+      <div class="pila-chips">${pilaChips}</div>
+    </div>
+    ${mainContent}`;
+
+  container.querySelectorAll('.pila-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const eq = btn.dataset.equipo;
+      if (pilaEquipos.has(eq)) pilaEquipos.delete(eq);
+      else pilaEquipos.add(eq);
+      renderCurrentView();
+    });
+  });
+  document.getElementById('btn-pila-limpiar')?.addEventListener('click', () => {
+    pilaEquipos.clear();
+    renderCurrentView();
+  });
 }
 
 /* ===== Circular progress SVG ===== */
@@ -1151,6 +1214,30 @@ function showDBError(error) {
 
 function emptyState(icon, title, desc) {
   return `<div class="empty"><div class="empty-icon">${icon}</div><h3>${title}</h3><p>${desc}</p></div>`;
+}
+
+function copyText(text, successMsg = '✓ Copiado') {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text)
+      .then(() => showToast(successMsg, 'green'))
+      .catch(() => copyFallback(text, successMsg));
+  } else {
+    copyFallback(text, successMsg);
+  }
+}
+function copyFallback(text, successMsg) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+  document.body.appendChild(ta);
+  ta.focus(); ta.select();
+  try {
+    document.execCommand('copy');
+    showToast(successMsg, 'green');
+  } catch {
+    showToast('No se pudo copiar', 'red');
+  }
+  document.body.removeChild(ta);
 }
 
 let toastTimer;

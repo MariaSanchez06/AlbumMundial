@@ -1289,6 +1289,46 @@ body.dark .pegar-cromo { background: #252830; }
   border-top: 1.5px dashed var(--border); margin-top: 8px;
 }
 
+/* ===== Pila selector (Para pegar) ===== */
+.pila-selector {
+  background: white; border: 1.5px solid var(--border);
+  border-radius: var(--radius); padding: 12px 14px; margin-bottom: 16px;
+  box-shadow: var(--shadow);
+}
+body.dark .pila-selector { background: var(--card); }
+.pila-selector-label {
+  font-size: .7rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .6px; color: var(--text-sub); margin-bottom: 10px;
+  display: flex; align-items: center; gap: 10px;
+}
+.pila-limpiar {
+  font-size: .7rem; font-weight: 700; padding: 3px 10px;
+  border-radius: 100px; border: 1.5px solid var(--red); color: var(--red);
+  background: none; cursor: pointer; font-family: inherit;
+  transition: background .15s, color .15s; white-space: nowrap;
+}
+.pila-limpiar:hover { background: var(--red); color: white; }
+.pila-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.pila-chip {
+  font-size: .72rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: .4px; padding: 5px 12px; border-radius: 100px;
+  border: 1.5px solid; cursor: pointer; font-family: inherit;
+  background: transparent; transition: opacity .15s, transform .1s;
+}
+.pila-chip:hover { opacity: .8; transform: scale(1.04); }
+.pila-chip.selected { opacity: 1; }
+.pila-orden-header {
+  font-family: 'Barlow Condensed', sans-serif; font-size: .85rem;
+  font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
+  color: var(--text-sub); margin-bottom: 12px;
+  padding: 8px 0 8px; border-top: 1.5px solid var(--border);
+}
+.pegar-orden-num {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 1rem;
+  font-weight: 900; color: var(--gold-dark); min-width: 28px;
+  flex-shrink: 0; text-align: right;
+}
+
 /* ===== Utility ===== */
 .mt-8  { margin-top: 8px; }
 .mb-0  { margin-bottom: 0; }
