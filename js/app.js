@@ -338,7 +338,13 @@ function applySearch(list) {
     );
   }
 
-  // Texto libre: nombre, equipo o siglas
+  // Texto libre: si coincide con las siglas de un equipo, mostrar todo ese equipo
+  const equiposPorSiglas = [...new Set(list.map(c => c.equipo))].filter(eq => {
+    const siglas = list.find(c => c.equipo === eq && c.siglas)?.siglas || '';
+    return norm(siglas) === q;
+  });
+  if (equiposPorSiglas.length) return list.filter(c => equiposPorSiglas.includes(c.equipo));
+
   return list.filter(c =>
     norm(c.nombre_jugador).includes(q) ||
     norm(c.equipo).includes(q) ||
@@ -1746,11 +1752,20 @@ function renderSobreResults() {
       );
     } else {
       const q = norm(query);
-      matches = matches.filter(c =>
-        norm(c.nombre_jugador).includes(q) ||
-        norm(c.equipo).includes(q) ||
-        (c.siglas && norm(c.siglas).includes(q))
-      );
+      // Si coincide exactamente con las siglas de un equipo → todos sus cromos
+      const equiposPorSiglas = [...new Set(allCromos.map(c => c.equipo))].filter(eq => {
+        const siglas = allCromos.find(c => c.equipo === eq && c.siglas)?.siglas || '';
+        return norm(siglas) === q;
+      });
+      if (equiposPorSiglas.length) {
+        matches = matches.filter(c => equiposPorSiglas.includes(c.equipo));
+      } else {
+        matches = matches.filter(c =>
+          norm(c.nombre_jugador).includes(q) ||
+          norm(c.equipo).includes(q) ||
+          (c.siglas && norm(c.siglas).includes(q))
+        );
+      }
     }
   }
 
