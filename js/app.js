@@ -556,10 +556,18 @@ function renderEquipos(container) {
     </div>`;
 
   const content = sortedGroups.map(grupo => {
-    const equiposGrupo = filter
+    let equiposGrupo = filter
       ? (groups[grupo] || []).filter(e => e === filter)
       : (groups[grupo] || []);
     if (filter && equiposGrupo.length === 0) return '';
+
+    equiposGrupo = [...equiposGrupo].sort((a, b) => {
+      const pa = paginasMap[a], pb = paginasMap[b];
+      if (pa && pb) return pa - pb;
+      if (pa) return -1;
+      if (pb) return  1;
+      return a.localeCompare(b, 'es');
+    });
 
     const sections = equiposGrupo.map(eq => {
       const cromos = allCromos.filter(c => c.equipo === eq);
