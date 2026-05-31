@@ -10,6 +10,7 @@ let posicionFilter = '';
 let viewMode       = localStorage.getItem('viewMode') || 'grid';
 let paginasMap     = JSON.parse(localStorage.getItem('paginas_map') || '{}');
 let pilaEquipos    = new Set();
+let pilaOpen       = false;
 let gruposMap     = {};
 let equiposReg    = [];
 let teamColorsDB  = {};
@@ -733,27 +734,39 @@ function renderParaPegar(container) {
       </div>`;
   }
 
-  // Selector de pila
-  const pilaChips = todosOrdenados.map(eq => {
-    const col = teamColor(eq);
-    const sel = pilaEquipos.has(eq);
-    const pag = paginasMap[eq] ? ` · p.${paginasMap[eq]}` : '';
-    return `<button class="pila-chip${sel ? ' selected' : ''}" data-equipo="${eq}"
-      style="${sel
-        ? `background:${col.bg};color:white;border-color:${col.bg}`
-        : `border-color:${col.bg};color:${col.bg}`}">
-      ${eq}${pag}
-    </button>`;
-  }).join('');
-
+  // Botón de pila
+  const pilaLabel = pilaEquipos.size > 0
+    ? `🧺 Mi pila <span class="pila-count-badge">${pilaEquipos.size}</span>`
+    : `🧺 Seleccionar mi pila`;
   const limpiarBtn = pilaEquipos.size > 0
     ? `<button class="pila-limpiar" id="btn-pila-limpiar">✕ Limpiar</button>`
     : '';
 
+  // Panel de selección desplegable
+  const pilaRows = todosOrdenados.map(eq => {
+    const col = teamColor(eq);
+    const sel = pilaEquipos.has(eq);
+    const pag = paginasMap[eq] ? `p.${paginasMap[eq]}` : '—';
+    return `<button class="pila-row${sel ? ' selected' : ''}" data-equipo="${eq}">
+      <span class="pila-row-dot" style="background:${col.bg}"></span>
+      <span class="pila-row-name">${eq}</span>
+      <span class="pila-row-pag">${pag}</span>
+      <span class="pila-row-check">${sel ? '✓' : ''}</span>
+    </button>`;
+  }).join('');
+
+  const panelHTML = pilaOpen ? `
+    <div class="pila-panel">
+      <div class="pila-panel-header">
+        <span class="pila-panel-title">Equipos en tu pila</span>
+        <button class="pila-panel-close" id="btn-pila-cerrar">Listo</button>
+      </div>
+      <div class="pila-panel-list">${pilaRows}</div>
+    </div>` : '';
+
   // Contenido principal según si hay pila o no
   let mainContent;
   if (pilaEquipos.size > 0) {
-    // Solo equipos de la pila, ordenados por página
     const pilaOrdenada = [...pilaEquipos].filter(eq => conObtenidos.includes(eq)).sort((a, b) => {
       const pa = paginasMap[a], pb = paginasMap[b];
       if (pa && pb) return pa - pb;
@@ -779,22 +792,33 @@ function renderParaPegar(container) {
       <span class="section-count">${conObtenidos.length} equipos</span>
     </div>
     <div class="pila-selector">
-      <div class="pila-selector-label">Selecciona equipos de tu pila${limpiarBtn}</div>
-      <div class="pila-chips">${pilaChips}</div>
+      <div class="pila-selector-top">
+        <button class="pila-open-btn${pilaOpen ? ' active' : ''}" id="btn-pila-open">${pilaLabel}</button>
+        ${limpiarBtn}
+      </div>
+      ${panelHTML}
     </div>
     ${mainContent}`;
 
-  container.querySelectorAll('.pila-chip').forEach(btn => {
+  document.getElementById('btn-pila-open')?.addEventListener('click', () => {
+    pilaOpen = !pilaOpen;
+    renderCurrentView();
+  });
+  document.getElementById('btn-pila-cerrar')?.addEventListener('click', () => {
+    pilaOpen = false;
+    renderCurrentView();
+  });
+  document.getElementById('btn-pila-limpiar')?.addEventListener('click', () => {
+    pilaEquipos.clear();
+    renderCurrentView();
+  });
+  container.querySelectorAll('.pila-row').forEach(btn => {
     btn.addEventListener('click', () => {
       const eq = btn.dataset.equipo;
       if (pilaEquipos.has(eq)) pilaEquipos.delete(eq);
       else pilaEquipos.add(eq);
       renderCurrentView();
     });
-  });
-  document.getElementById('btn-pila-limpiar')?.addEventListener('click', () => {
-    pilaEquipos.clear();
-    renderCurrentView();
   });
 }
 
