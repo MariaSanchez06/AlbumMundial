@@ -8,6 +8,7 @@ let searchTerm     = '';
 let equipoFilter   = '';
 let posicionFilter = '';
 let viewMode       = localStorage.getItem('viewMode') || 'grid';
+let paginasMap     = JSON.parse(localStorage.getItem('paginas_map') || '{}');
 let gruposMap     = {};
 let equiposReg    = [];
 let teamColorsDB  = {};
@@ -309,6 +310,7 @@ function renderCurrentView() {
     }
     case 'repetidos':    renderGrid(content, applySearch(allCromos.filter(c => c.cd_repetidos > 0)), 'Repetidos'); break;
     case 'intercambios': renderIntercambios(content); break;
+    case 'parapegar':    renderParaPegar(content); break;
     case 'stats':        renderStats(content); break;
   }
 }
@@ -570,6 +572,9 @@ function renderEquipos(container) {
           <div class="team-header team-toggle">
             <input type="color" class="team-color-input" data-equipo="${eq}" value="${teamColorHex(eq)}" title="Cambiar color">
             <span class="team-name">${eq}</span>
+            <input type="number" class="team-page-input" data-equipo="${eq}"
+                   value="${paginasMap[eq] || ''}" placeholder="pág" min="1" max="999"
+                   title="Página en el álbum físico">
             <div class="team-progress-wrap">
               <div class="team-progress-bar">
                 <div class="team-progress-fill" style="width:${pct}%"></div>
@@ -636,6 +641,17 @@ function renderEquipos(container) {
       renderCurrentView();
     });
   });
+  container.querySelectorAll('.team-page-input').forEach(input => {
+    input.addEventListener('click', e => e.stopPropagation());
+    input.addEventListener('change', e => {
+      e.stopPropagation();
+      const pag = parseInt(input.value) || null;
+      if (pag) paginasMap[input.dataset.equipo] = pag;
+      else delete paginasMap[input.dataset.equipo];
+      localStorage.setItem('paginas_map', JSON.stringify(paginasMap));
+      showToast(pag ? `📖 Página ${pag} guardada` : 'Página eliminada', 'green', 1500);
+    });
+  });
   container.querySelectorAll('.group-toggle').forEach(header => {
     header.addEventListener('click', () => {
       header.closest('.group-section').classList.toggle('collapsed');
@@ -657,6 +673,62 @@ function renderEquipos(container) {
       renderCurrentView();
     });
   });
+}
+
+/* ===== Vista Para pegar ===== */
+function renderParaPegar(container) {
+  const equipos = [...new Set(allCromos.map(c => c.equipo))];
+
+  const conObtenidos = equipos.filter(eq => allCromos.some(c => c.equipo === eq && c.obtenido));
+  if (!conObtenidos.length) {
+    container.innerHTML = emptyState('📌', 'Sin cromos obtenidos', 'Marca cromos como obtenidos para verlos aquí ordenados por página.');
+    return;
+  }
+
+  conObtenidos.sort((a, b) => {
+    const pa = paginasMap[a] || 99999;
+    const pb = paginasMap[b] || 99999;
+    return pa !== pb ? pa - pb : a.localeCompare(b, 'es');
+  });
+
+  const sinPagina = conObtenidos.filter(eq => !paginasMap[eq]).length;
+  const hint = sinPagina
+    ? `<div class="pegar-hint">📖 ${sinPagina} equipo${sinPagina > 1 ? 's' : ''} sin página — asígnala en <strong>Equipos</strong> (campo "pág" en cada equipo)</div>`
+    : '';
+
+  const groups = conObtenidos.map(eq => {
+    const col      = teamColor(eq);
+    const obtenidos = allCromos.filter(c => c.equipo === eq && c.obtenido).sort((a, b) => a.numero - b.numero);
+    const total    = allCromos.filter(c => c.equipo === eq).length;
+    const pagina   = paginasMap[eq];
+    const pct      = Math.round(obtenidos.length / total * 100);
+
+    return `
+      <div class="pegar-group">
+        <div class="pegar-header" style="border-left:4px solid ${col.bg}">
+          <span class="pegar-page-badge" style="background:${col.bg}18;color:${col.bg}">
+            ${pagina ? `Pág. ${pagina}` : '—'}
+          </span>
+          <span class="pegar-team-name" style="color:${col.bg}">${eq}</span>
+          <span class="pegar-count">${obtenidos.length}/${total} · ${pct}%</span>
+        </div>
+        <div class="pegar-cromos">
+          ${obtenidos.map(c => `
+            <span class="pegar-cromo">
+              <span class="pegar-cromo-num">#${c.numero}</span>
+              ${c.nombre_jugador}
+            </span>`).join('')}
+        </div>
+      </div>`;
+  }).join('');
+
+  container.innerHTML = `
+    <div class="section-title">
+      Para pegar
+      <span class="section-count">${conObtenidos.length} equipos</span>
+    </div>
+    ${hint}
+    ${groups}`;
 }
 
 /* ===== Circular progress SVG ===== */
