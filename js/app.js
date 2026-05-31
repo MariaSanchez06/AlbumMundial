@@ -1694,14 +1694,13 @@ function openSobreModal() {
   sobreHadChanges = false;
   document.getElementById('sobre-count').textContent = '0';
   document.getElementById('sobre-search').value = '';
-  document.getElementById('sobre-results').innerHTML = '<p class="form-hint">Selecciona un equipo o escribe para buscar</p>';
   const sel = document.getElementById('sobre-equipo-filter');
   const equipos = [...new Set(allCromos.map(c => c.equipo))].sort();
   sel.innerHTML = '<option value="">Todos los equipos</option>' +
     equipos.map(e => `<option value="${e}">${e}</option>`).join('');
   sel.value = '';
   document.getElementById('modal-sobre-overlay').classList.add('open');
-  setTimeout(() => document.getElementById('sobre-search').focus(), 80);
+  setTimeout(() => { renderSobreResults(); document.getElementById('sobre-search').focus(); }, 80);
 }
 
 function closeSobreModal() {
@@ -1730,17 +1729,13 @@ function renderSobreResults() {
   const query      = document.getElementById('sobre-search').value.trim();
   const equipoFilt = document.getElementById('sobre-equipo-filter').value;
 
-  if (!query && !equipoFilt) {
-    container.innerHTML = '<p class="form-hint">Selecciona un equipo o escribe para buscar</p>';
-    return;
-  }
-
   let matches = allCromos;
   if (equipoFilt) matches = matches.filter(c => c.equipo === equipoFilt);
+
   if (query) {
     const numOnly = /^\d+$/.test(query);
     const teamNum = /^([^\d\s]\S*)\s+(\d+)$/i.exec(query);
-    if (numOnly && equipoFilt) {
+    if (numOnly) {
       matches = matches.filter(c => String(c.numero) === query);
     } else if (teamNum) {
       const siglaQ = norm(teamNum[1]);
@@ -1758,7 +1753,9 @@ function renderSobreResults() {
       );
     }
   }
-  if (!equipoFilt) matches = matches.slice(0, 12);
+
+  // Sin equipo ni búsqueda: limitar para no sobrecargar
+  if (!equipoFilt && !query) matches = matches.slice(0, 40);
 
   if (matches.length === 0) {
     container.innerHTML = '<p class="form-hint">Sin resultados</p>';
