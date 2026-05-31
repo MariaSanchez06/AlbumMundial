@@ -685,24 +685,15 @@ function renderParaPegar(container) {
     return;
   }
 
-  conObtenidos.sort((a, b) => {
-    const pa = paginasMap[a] || 99999;
-    const pb = paginasMap[b] || 99999;
-    return pa !== pb ? pa - pb : a.localeCompare(b, 'es');
-  });
+  const conPagina  = conObtenidos.filter(eq =>  paginasMap[eq]).sort((a, b) => paginasMap[a] - paginasMap[b]);
+  const sinPagina  = conObtenidos.filter(eq => !paginasMap[eq]).sort((a, b) => a.localeCompare(b, 'es'));
 
-  const sinPagina = conObtenidos.filter(eq => !paginasMap[eq]).length;
-  const hint = sinPagina
-    ? `<div class="pegar-hint">📖 ${sinPagina} equipo${sinPagina > 1 ? 's' : ''} sin página — asígnala en <strong>Equipos</strong> (campo "pág" en cada equipo)</div>`
-    : '';
-
-  const groups = conObtenidos.map(eq => {
+  function groupHTML(eq) {
     const col      = teamColor(eq);
     const obtenidos = allCromos.filter(c => c.equipo === eq && c.obtenido).sort((a, b) => a.numero - b.numero);
     const total    = allCromos.filter(c => c.equipo === eq).length;
     const pagina   = paginasMap[eq];
     const pct      = Math.round(obtenidos.length / total * 100);
-
     return `
       <div class="pegar-group">
         <div class="pegar-header" style="border-left:4px solid ${col.bg}">
@@ -716,19 +707,24 @@ function renderParaPegar(container) {
           ${obtenidos.map(c => `
             <span class="pegar-cromo">
               <span class="pegar-cromo-num">#${c.numero}</span>
-              ${c.nombre_jugador}
+              <span class="pegar-cromo-sep">·</span>
+              <span class="pegar-cromo-name">${c.nombre_jugador}</span>
             </span>`).join('')}
         </div>
       </div>`;
-  }).join('');
+  }
+
+  const sinPaginaSection = sinPagina.length ? `
+    <div class="pegar-subsection-title">Sin página asignada — edítala en Equipos</div>
+    ${sinPagina.map(groupHTML).join('')}` : '';
 
   container.innerHTML = `
     <div class="section-title">
       Para pegar
       <span class="section-count">${conObtenidos.length} equipos</span>
     </div>
-    ${hint}
-    ${groups}`;
+    ${conPagina.map(groupHTML).join('')}
+    ${sinPaginaSection}`;
 }
 
 /* ===== Circular progress SVG ===== */

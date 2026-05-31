@@ -1266,14 +1266,27 @@ body.dark .pegar-header { background: #16181f; }
   display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 14px;
 }
 .pegar-cromo {
-  display: flex; align-items: center; gap: 4px;
+  display: flex; align-items: center; gap: 0;
   font-size: .78rem; color: var(--text);
-  background: #f5f5f5; border-radius: 8px; padding: 4px 9px;
+  background: #f5f5f5; border-radius: 8px; padding: 4px 10px;
+  overflow: hidden;
 }
 body.dark .pegar-cromo { background: #252830; }
 .pegar-cromo-num {
-  font-family: 'Barlow Condensed', sans-serif; font-weight: 800;
-  color: var(--text-sub); font-size: .8rem;
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 900;
+  color: var(--text-sub); font-size: .82rem; flex-shrink: 0;
+}
+.pegar-cromo-sep {
+  color: #ccc; margin: 0 6px; font-size: .7rem; flex-shrink: 0;
+}
+.pegar-cromo-name {
+  font-size: .78rem; font-weight: 600; color: var(--text);
+  white-space: nowrap;
+}
+.pegar-subsection-title {
+  font-size: .72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .8px; color: var(--text-sub); padding: 16px 0 8px;
+  border-top: 1.5px dashed var(--border); margin-top: 8px;
 }
 
 /* ===== Utility ===== */
