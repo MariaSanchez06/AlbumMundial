@@ -1244,19 +1244,28 @@ function celebrateTeam(equipo) {
 
 /* ===== Modal apertura de sobre ===== */
 let sobreCount = 0;
+let sobreHadChanges = false;
+
+const POS_OPTIONS = ['', 'Portero', 'Defensa', 'Medio', 'Delantero', 'Escudo', 'Equipo', 'FWC', 'Coke'];
 
 function openSobreModal() {
   sobreCount = 0;
+  sobreHadChanges = false;
   document.getElementById('sobre-count').textContent = '0';
   document.getElementById('sobre-search').value = '';
-  document.getElementById('sobre-results').innerHTML = '<p class="form-hint">Escribe para buscar cromos sin obtener</p>';
+  document.getElementById('sobre-results').innerHTML = '<p class="form-hint">Selecciona un equipo o escribe para buscar</p>';
+  const sel = document.getElementById('sobre-equipo-filter');
+  const equipos = [...new Set(allCromos.map(c => c.equipo))].sort();
+  sel.innerHTML = '<option value="">Todos los equipos</option>' +
+    equipos.map(e => `<option value="${e}">${e}</option>`).join('');
+  sel.value = '';
   document.getElementById('modal-sobre-overlay').classList.add('open');
   setTimeout(() => document.getElementById('sobre-search').focus(), 80);
 }
 
 function closeSobreModal() {
   document.getElementById('modal-sobre-overlay').classList.remove('open');
-  if (sobreCount > 0) {
+  if (sobreHadChanges) {
     updateHeaderStats();
     renderCurrentView();
   }
@@ -1267,55 +1276,118 @@ function bindSobreModal() {
   document.getElementById('modal-sobre-overlay').addEventListener('click', e => {
     if (e.target === e.currentTarget) closeSobreModal();
   });
-  const input = document.getElementById('sobre-search');
   let timer;
-  input.addEventListener('input', () => {
+  document.getElementById('sobre-search').addEventListener('input', () => {
     clearTimeout(timer);
-    timer = setTimeout(() => renderSobreResults(input.value.trim()), 150);
+    timer = setTimeout(() => renderSobreResults(), 150);
   });
+  document.getElementById('sobre-equipo-filter').addEventListener('change', () => renderSobreResults());
 }
 
-function renderSobreResults(query) {
-  const container = document.getElementById('sobre-results');
-  if (!query) {
-    container.innerHTML = '<p class="form-hint">Escribe para buscar cromos sin obtener</p>';
+function renderSobreResults() {
+  const container  = document.getElementById('sobre-results');
+  const query      = document.getElementById('sobre-search').value.trim();
+  const equipoFilt = document.getElementById('sobre-equipo-filter').value;
+
+  if (!query && !equipoFilt) {
+    container.innerHTML = '<p class="form-hint">Selecciona un equipo o escribe para buscar</p>';
     return;
   }
-  const q = norm(query);
-  const matches = allCromos
-    .filter(c => !c.obtenido && (norm(c.nombre_jugador).includes(q) || norm(c.equipo).includes(q) || (c.siglas && norm(c.siglas).includes(q))))
-    .slice(0, 8);
+
+  let matches = allCromos;
+  if (equipoFilt) matches = matches.filter(c => c.equipo === equipoFilt);
+  if (query) {
+    const q = norm(query);
+    matches = matches.filter(c =>
+      norm(c.nombre_jugador).includes(q) ||
+      norm(c.equipo).includes(q) ||
+      (c.siglas && norm(c.siglas).includes(q))
+    );
+  }
+  if (!equipoFilt) matches = matches.slice(0, 12);
+
   if (matches.length === 0) {
     container.innerHTML = '<p class="form-hint">Sin resultados</p>';
     return;
   }
+
   container.innerHTML = matches.map(c => `
-    <button class="sobre-result-btn" data-id="${c.id}">
-      <span class="sobre-result-num">#${c.numero}</span>
-      <span class="sobre-result-info">
-        <span class="sobre-result-name">${c.nombre_jugador || '—'}</span>
-        <span class="sobre-result-equipo">${c.equipo}</span>
-      </span>
-      <span class="sobre-result-check">+</span>
-    </button>`).join('');
-  container.querySelectorAll('.sobre-result-btn').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const id = Number(btn.dataset.id);
-      const cromo = allCromos.find(c => c.id === id);
-      if (!cromo || cromo.obtenido) return;
-      btn.disabled = true;
-      btn.querySelector('.sobre-result-check').textContent = '✓';
-      const { error } = await db.from('cromos').update({ obtenido: true }).eq('id', id);
-      if (error) { btn.disabled = false; btn.querySelector('.sobre-result-check').textContent = '+'; showToast('Error al guardar', 'red'); return; }
-      cromo.obtenido = true;
-      sobreCount++;
-      document.getElementById('sobre-count').textContent = sobreCount;
-      const equipoCromos = allCromos.filter(c => c.equipo === cromo.equipo);
-      if (equipoCromos.length > 0 && equipoCromos.every(c => c.obtenido)) celebrateTeam(cromo.equipo);
-      setTimeout(() => {
-        btn.remove();
-        if (!container.querySelector('.sobre-result-btn')) renderSobreResults(document.getElementById('sobre-search').value.trim());
-      }, 500);
+    <div class="sobre-result-row${c.obtenido ? ' sobre-obtenido' : ''}" data-id="${c.id}">
+      <div class="sobre-result-left">
+        <span class="sobre-result-num">#${c.numero}</span>
+        <div class="sobre-result-info">
+          <span class="sobre-result-name">${c.nombre_jugador || '—'}</span>
+          <span class="sobre-result-equipo">${c.equipo}</span>
+        </div>
+      </div>
+      <div class="sobre-result-right">
+        <select class="sobre-pos-select" data-id="${c.id}" title="Posición">
+          ${POS_OPTIONS.map(p => `<option value="${p}"${(c.posicion || '') === p ? ' selected' : ''}>${p || '—'}</option>`).join('')}
+        </select>
+        <button class="sobre-action-btn ${c.obtenido ? 'sobre-btn-rep' : 'sobre-btn-get'}" data-id="${c.id}">
+          ${c.obtenido ? `+Rep${c.cd_repetidos > 0 ? ' (' + c.cd_repetidos + ')' : ''}` : '✓'}
+        </button>
+      </div>
+    </div>`).join('');
+
+  container.querySelectorAll('.sobre-pos-select').forEach(sel => {
+    sel.addEventListener('change', async e => {
+      e.stopPropagation();
+      const id = Number(sel.dataset.id);
+      const posicion = sel.value;
+      const { error } = await db.from('cromos').update({ posicion }).eq('id', id);
+      if (error) { showToast('Error al guardar posición', 'red'); return; }
+      allCromos.find(c => c.id === id).posicion = posicion;
+      sobreHadChanges = true;
+      showToast('✓ Posición guardada', 'green', 1200);
     });
   });
+
+  container.querySelectorAll('.sobre-btn-get').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id    = Number(btn.dataset.id);
+      const cromo = allCromos.find(c => c.id === id);
+      if (!cromo || cromo.obtenido) return;
+      const posSelect = container.querySelector(`.sobre-pos-select[data-id="${id}"]`);
+      const posicion  = posSelect?.value || '';
+      btn.disabled = true;
+      btn.textContent = '...';
+      const updates = { obtenido: true, posicion };
+      const { error } = await db.from('cromos').update(updates).eq('id', id);
+      if (error) { btn.disabled = false; btn.textContent = '✓'; showToast('Error al guardar', 'red'); return; }
+      cromo.obtenido = true;
+      cromo.posicion = posicion;
+      sobreCount++;
+      sobreHadChanges = true;
+      document.getElementById('sobre-count').textContent = sobreCount;
+      const row = btn.closest('.sobre-result-row');
+      row.classList.add('sobre-obtenido');
+      const newBtn = btn.cloneNode(false);
+      newBtn.className = 'sobre-action-btn sobre-btn-rep';
+      newBtn.textContent = '+Rep';
+      newBtn.dataset.id = id;
+      btn.replaceWith(newBtn);
+      newBtn.addEventListener('click', () => handleSobreRep(newBtn, cromo));
+      if (allCromos.filter(c => c.equipo === cromo.equipo).every(c => c.obtenido)) celebrateTeam(cromo.equipo);
+      showToast('✓ Cromo obtenido', 'green', 1500);
+    });
+  });
+
+  container.querySelectorAll('.sobre-btn-rep').forEach(btn => {
+    const id    = Number(btn.dataset.id);
+    const cromo = allCromos.find(c => c.id === id);
+    btn.addEventListener('click', () => handleSobreRep(btn, cromo));
+  });
+}
+
+async function handleSobreRep(btn, cromo) {
+  btn.disabled = true;
+  const newVal = cromo.cd_repetidos + 1;
+  const { error } = await db.from('cromos').update({ cd_repetidos: newVal }).eq('id', cromo.id);
+  if (error) { btn.disabled = false; showToast('Error al guardar', 'red'); return; }
+  cromo.cd_repetidos = newVal;
+  sobreHadChanges = true;
+  btn.textContent = `+Rep (${newVal})`;
+  btn.disabled = false;
+  showToast(`📦 Repetido (${newVal})`, '', 1500);
 }

@@ -230,10 +230,11 @@
         <button class="modal-close" id="modal-sobre-close" aria-label="Cerrar">✕</button>
       </div>
       <div class="modal-body">
-        <div class="form-group" style="margin-bottom:12px">
-          <input type="search" id="sobre-search" placeholder="Buscar jugador o equipo..." autocomplete="off" inputmode="search" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:.95rem;outline:none;font-family:inherit">
-        </div>
-        <div id="sobre-results"><p class="form-hint">Escribe para buscar cromos sin obtener</p></div>
+        <select id="sobre-equipo-filter" class="sobre-equipo-filter">
+          <option value="">Todos los equipos</option>
+        </select>
+        <input type="search" id="sobre-search" class="sobre-search-input" placeholder="Buscar jugador..." autocomplete="off" inputmode="search">
+        <div id="sobre-results"><p class="form-hint">Selecciona un equipo o escribe para buscar</p></div>
       </div>
     </div>
   </div>

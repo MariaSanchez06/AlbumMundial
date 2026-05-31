@@ -958,19 +958,54 @@ body {
   width: 22px; height: 22px; border-radius: 50%;
   margin-left: 6px; vertical-align: middle;
 }
-.sobre-result-btn {
-  display: flex; align-items: center; gap: 10px; width: 100%;
-  background: white; border: 1.5px solid var(--border); border-radius: 12px;
-  padding: 10px 12px; margin-bottom: 8px; cursor: pointer; text-align: left;
-  transition: border-color .15s, background .15s;
+.sobre-equipo-filter, .sobre-search-input {
+  width: 100%; display: block;
+  padding: 10px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  font-size: .9rem;
+  background: white;
+  color: var(--text);
+  outline: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color .2s;
 }
-.sobre-result-btn:hover   { border-color: var(--green); background: #f0faf4; }
-.sobre-result-btn:disabled { opacity: .5; cursor: default; }
-.sobre-result-num  { font-size: 1rem; font-weight: 800; color: var(--text-sub); min-width: 36px; }
-.sobre-result-info { flex: 1; display: flex; flex-direction: column; gap: 1px; }
-.sobre-result-name { font-size: .9rem; font-weight: 700; color: var(--text); }
-.sobre-result-equipo { font-size: .72rem; color: var(--text-sub); text-transform: uppercase; letter-spacing: .4px; }
-.sobre-result-check { font-size: 1.1rem; font-weight: 800; color: var(--green); min-width: 20px; text-align: right; }
+.sobre-equipo-filter { margin-bottom: 10px; }
+.sobre-search-input  { cursor: text; font-size: .95rem; margin-bottom: 12px; }
+.sobre-equipo-filter:focus, .sobre-search-input:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(13,107,54,.1); }
+
+.sobre-result-row {
+  display: flex; align-items: center; justify-content: space-between;
+  background: white; border: 1.5px solid var(--border); border-radius: 12px;
+  padding: 10px 12px; margin-bottom: 8px; gap: 8px;
+}
+.sobre-obtenido { background: var(--green-light); border-color: rgba(13,107,54,.2); }
+.sobre-result-left  { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+.sobre-result-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.sobre-result-num   { font-size: 1rem; font-weight: 800; color: var(--text-sub); min-width: 32px; }
+.sobre-result-info  { flex: 1; display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.sobre-result-name  { font-size: .85rem; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sobre-result-equipo { font-size: .68rem; color: var(--text-sub); text-transform: uppercase; letter-spacing: .4px; }
+.sobre-pos-select {
+  font-size: .72rem; padding: 5px 4px;
+  border: 1.5px solid var(--border); border-radius: 8px;
+  background: white; color: var(--text); outline: none;
+  cursor: pointer; font-family: inherit; max-width: 74px;
+  transition: border-color .15s;
+}
+.sobre-pos-select:focus { border-color: var(--green); }
+.sobre-action-btn {
+  font-size: .72rem; font-weight: 700; padding: 6px 9px;
+  border: none; border-radius: 8px; cursor: pointer;
+  white-space: nowrap; font-family: inherit;
+  transition: opacity .15s; flex-shrink: 0;
+}
+.sobre-action-btn:disabled { opacity: .5; cursor: default; }
+.sobre-btn-get { background: var(--green); color: white; }
+.sobre-btn-get:hover:not(:disabled) { opacity: .85; }
+.sobre-btn-rep { background: #f97316; color: white; }
+.sobre-btn-rep:hover:not(:disabled) { opacity: .85; }
 
 .inicio-teams-list {
   background: white;
