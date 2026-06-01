@@ -14,6 +14,7 @@ let pilaOpen       = false;
 let gruposMap     = {};
 let equiposReg    = [];
 let teamColorsDB  = {};
+let historial     = JSON.parse(localStorage.getItem('historial') || '[]');
 
 /* ===== Team color map ===== */
 const TEAM_COLORS = {
@@ -315,10 +316,101 @@ function renderCurrentView() {
     case 'intercambios': renderIntercambios(content); break;
     case 'parapegar':    renderParaPegar(content); break;
     case 'stats':        renderStats(content); break;
+    case 'historial':    renderHistorial(content); break;
   }
 }
 
+function renderHistorial(container) {
+  if (!historial.length) {
+    container.innerHTML = emptyState('📋', 'Sin actividad', 'Las acciones que realices en el álbum aparecerán aquí.');
+    return;
+  }
+
+  // Agrupar por día
+  const byDay = [];
+  let lastDay = null;
+  historial.forEach(e => {
+    const day = histDayLabel(e.ts);
+    if (day !== lastDay) { byDay.push({ day, entries: [] }); lastDay = day; }
+    byDay[byDay.length - 1].entries.push(e);
+  });
+
+  const groups = byDay.map(({ day, entries }) => `
+    <div class="hist-day-sep">${day}</div>
+    ${entries.map(e => {
+      const t   = HIST_TIPOS[e.tipo] || { icon: '·', color: '#9a9a9a', label: e.tipo };
+      const col = teamColor(e.equipo);
+      return `
+        <div class="hist-entry" style="--hc:${t.color}">
+          <span class="hist-type-dot" style="background:${t.color}">${t.icon}</span>
+          <div class="hist-body">
+            <div class="hist-main">
+              <span class="hist-label" style="color:${t.color}">${t.label}</span>
+              <span class="hist-tag" style="color:${col.bg}">${e.siglas || e.equipo.substring(0,3)} #${e.numero}</span>
+              <span class="hist-name">${e.nombre}</span>
+            </div>
+            ${e.detalle ? `<div class="hist-detalle">${e.detalle}</div>` : ''}
+          </div>
+          <span class="hist-time">${histTimeAgo(e.ts)}</span>
+        </div>`;
+    }).join('')}`).join('');
+
+  container.innerHTML = `
+    <div class="section-title">
+      Historial
+      <span class="section-count">${historial.length}</span>
+      <div class="section-title-actions">
+        <button class="btn-section-action" style="background:rgba(232,57,59,.1);color:var(--red);border:1.5px solid rgba(232,57,59,.2)" id="btn-hist-clear">Borrar</button>
+      </div>
+    </div>
+    <div class="hist-list">${groups}</div>`;
+
+  document.getElementById('btn-hist-clear')?.addEventListener('click', () => {
+    if (!confirm('¿Borrar todo el historial?')) return;
+    historial = [];
+    localStorage.removeItem('historial');
+    renderCurrentView();
+  });
+}
+
 const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+
+/* ===== Historial ===== */
+const HIST_TIPOS = {
+  obtenido:    { icon: '✓', color: '#0d6b36', label: 'Obtenido' },
+  desobtenido: { icon: '✗', color: '#9a9a9a', label: 'Desmarcado' },
+  rep_add:     { icon: '+', color: '#f97316', label: 'Repetido' },
+  rep_sub:     { icon: '−', color: '#3b82f6', label: 'Rep. entregado' },
+  intercambio: { icon: '⇄', color: '#7c3aed', label: 'Intercambio' },
+  cromo_add:   { icon: '✚', color: '#0d6b36', label: 'Añadido' },
+  cromo_del:   { icon: '✕', color: '#e8393b', label: 'Borrado' },
+  cromo_edit:  { icon: '✏', color: '#f0a500', label: 'Editado' },
+};
+
+function addHistorial(tipo, cromo, detalle = '') {
+  historial.unshift({ ts: Date.now(), tipo, equipo: cromo.equipo, numero: cromo.numero, nombre: cromo.nombre_jugador, siglas: cromo.siglas || '', detalle });
+  if (historial.length > 600) historial = historial.slice(0, 600);
+  localStorage.setItem('historial', JSON.stringify(historial));
+}
+
+function histTimeAgo(ts) {
+  const diff = Date.now() - ts;
+  const min  = Math.floor(diff / 60000);
+  if (min < 1)  return 'ahora';
+  if (min < 60) return `${min}min`;
+  const h = Math.floor(min / 60);
+  if (h < 24)   return `${h}h`;
+  return new Date(ts).toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' });
+}
+
+function histDayLabel(ts) {
+  const d   = new Date(ts);
+  const now = new Date();
+  const diffDays = Math.floor((new Date(now.getFullYear(), now.getMonth(), now.getDate()) - new Date(d.getFullYear(), d.getMonth(), d.getDate())) / 86400000);
+  if (diffDays === 0) return 'Hoy';
+  if (diffDays === 1) return 'Ayer';
+  return d.toLocaleDateString('es', { weekday: 'long', day: 'numeric', month: 'short' });
+}
 
 function applySearch(list) {
   if (!searchTerm) return list;
@@ -590,6 +682,7 @@ async function confirmarIntercambio(abrirSobre) {
   if (error) { showToast('Error al guardar', 'red'); return; }
 
   cromo.cd_repetidos = nuevosReps;
+  addHistorial('intercambio', cromo, conQuien ? `Con ${conQuien}` : '');
   const msg = conQuien ? `✓ Intercambiado con ${conQuien}` : '✓ Intercambio registrado';
   showToast(msg, 'green');
   renderCurrentView();
@@ -1062,8 +1155,36 @@ function renderInicio(container) {
       <div class="inicio-teams-list">
         ${teamRows}
       </div>
+      ${historial.length ? `
+      <div class="section-title" style="margin-top:8px">
+        Actividad reciente
+        <div class="section-title-actions">
+          <button class="btn-section-action" id="btn-ver-historial">Ver todo</button>
+        </div>
+      </div>
+      <div class="hist-list hist-list-mini">
+        ${historial.slice(0, 5).map(e => {
+          const t   = HIST_TIPOS[e.tipo] || { icon: '·', color: '#9a9a9a', label: e.tipo };
+          const col = teamColor(e.equipo);
+          return `<div class="hist-entry" style="--hc:${t.color}">
+            <span class="hist-type-dot" style="background:${t.color}">${t.icon}</span>
+            <div class="hist-body">
+              <div class="hist-main">
+                <span class="hist-label" style="color:${t.color}">${t.label}</span>
+                <span class="hist-tag" style="color:${col.bg}">${e.siglas || e.equipo.substring(0,3)} #${e.numero}</span>
+                <span class="hist-name">${e.nombre}</span>
+              </div>
+              ${e.detalle ? `<div class="hist-detalle">${e.detalle}</div>` : ''}
+            </div>
+            <span class="hist-time">${histTimeAgo(e.ts)}</span>
+          </div>`;
+        }).join('')}
+      </div>` : ''}
     </div>`;
   document.getElementById('btn-abrir-sobre').addEventListener('click', openSobreModal);
+  document.getElementById('btn-ver-historial')?.addEventListener('click', () => {
+    document.querySelector('[data-view="historial"]').click();
+  });
   document.getElementById('stat-sobres').addEventListener('click', () => {
     const precio = 1.50;
     const total  = Math.floor(allCromos.filter(c => c.obtenido).length / 5) * precio;
@@ -1251,6 +1372,7 @@ async function toggleObtenido(id, current, cardEl) {
 
   const cromo = allCromos.find(c => c.id === id);
   cromo.obtenido = newVal;
+  addHistorial(newVal ? 'obtenido' : 'desobtenido', cromo);
 
   cardEl.dataset.obtenido = newVal;
   cardEl.classList.toggle('obtenido', newVal);
@@ -1296,7 +1418,9 @@ async function updateRepetidos(id, newVal, btnEl) {
   if (error) { showToast('Error al actualizar :(', 'red'); return; }
 
   const cromo = allCromos.find(c => c.id === id);
+  const prevVal = cromo.cd_repetidos;
   cromo.cd_repetidos = newVal;
+  addHistorial(newVal > prevVal ? 'rep_add' : 'rep_sub', cromo);
 
   const card = btnEl.closest('.cromo-card');
   card.dataset.rep = newVal;
@@ -1661,6 +1785,7 @@ async function submitModal() {
 
   allCromos.push(...data);
   allCromos.sort((a, b) => a.equipo.localeCompare(b.equipo, 'es') || a.numero - b.numero);
+  data.forEach(c => addHistorial('cromo_add', c));
 
   populateEquipoSelect();
   updateHeaderStats();
@@ -1689,6 +1814,7 @@ function bindEditarModal() {
     if (!confirm(`¿Borrar el cromo #${cromo.numero} ${cromo.nombre_jugador}? Esta acción no se puede deshacer.`)) return;
     const { error } = await db.from('cromos').delete().eq('id', editarCromoId);
     if (error) { showToast('Error al borrar: ' + error.message, 'red'); return; }
+    addHistorial('cromo_del', cromo);
     allCromos = allCromos.filter(c => c.id !== editarCromoId);
     closeEditarModal();
     updateHeaderStats();
@@ -1723,6 +1849,7 @@ async function submitEditarModal() {
   const cromo = allCromos.find(c => c.id === editarCromoId);
   cromo.nombre_jugador = nombre;
   cromo.posicion = posicion;
+  addHistorial('cromo_edit', cromo);
   closeEditarModal();
   showToast('✓ Cromo actualizado', 'green');
   renderCurrentView();
@@ -1905,6 +2032,7 @@ function renderSobreResults() {
       const { error } = await db.from('cromos').update({ obtenido: true }).eq('id', id);
       if (error) { btn.disabled = false; btn.textContent = '✓'; showToast('Error al guardar', 'red'); return; }
       cromo.obtenido = true;
+      addHistorial('obtenido', cromo);
       sobreCount++;
       sobreHadChanges = true;
       document.getElementById('sobre-count').textContent = sobreCount;
@@ -1934,6 +2062,7 @@ async function handleSobreRep(btn, cromo) {
   const { error } = await db.from('cromos').update({ cd_repetidos: newVal }).eq('id', cromo.id);
   if (error) { btn.disabled = false; showToast('Error al guardar', 'red'); return; }
   cromo.cd_repetidos = newVal;
+  addHistorial('rep_add', cromo);
   sobreHadChanges = true;
   btn.textContent = `+Rep (${newVal})`;
   btn.disabled = false;
