@@ -225,6 +225,25 @@
     </div>
   </div>
 
+  <!-- Modal: registrar intercambio -->
+  <div class="modal-overlay" id="modal-interc-overlay">
+    <div class="modal-panel modal-panel-sm" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <span class="modal-title">Registrar intercambio</span>
+        <button class="modal-close" id="modal-interc-close" aria-label="Cerrar">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="interc-modal-cromo" id="interc-modal-info"></p>
+        <div class="form-group" style="margin-bottom:18px">
+          <label for="interc-con-quien">¿Con quién? <span style="font-weight:400;text-transform:none">(opcional)</span></label>
+          <input type="text" id="interc-con-quien" placeholder="Nombre de la persona" autocomplete="off">
+        </div>
+        <button class="btn-submit" id="btn-interc-confirmar">✓ Confirmar intercambio</button>
+        <button class="btn-submit" id="btn-interc-y-recibir" style="margin-top:8px;background:#1e4db7">✓ Confirmar y marcar cromo recibido</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal: abrir sobre -->
   <div class="modal-overlay" id="modal-sobre-overlay">
     <div class="modal-panel modal-panel-sm" role="dialog" aria-modal="true">

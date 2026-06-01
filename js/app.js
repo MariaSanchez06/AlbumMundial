@@ -205,6 +205,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   bindNav();
   bindSearch();
   bindModal();
+  bindIntercModal();
   bindGrupoModal();
   bindEquipoModal();
   bindBorrarModal();
@@ -522,6 +523,7 @@ function renderIntercambios(container) {
           <span class="interc-num">#${c.numero}</span>
           <span class="interc-nombre">${c.nombre_jugador}</span>
           <span class="interc-rep-badge" style="background:${col.bg}22;color:${col.bg}">×${c.cd_repetidos}</span>
+          <button class="btn-interc-dar" data-id="${c.id}" title="Registrar intercambio">📤</button>
         </div>`).join('');
       return `
         <div class="interc-group">
@@ -547,6 +549,61 @@ function renderIntercambios(container) {
     const t = generarTextoRepetidos();
     copyText(t, '✓ Copiado al portapapeles');
   });
+
+  container.querySelectorAll('.btn-interc-dar').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const cromo = allCromos.find(c => c.id === Number(btn.dataset.id));
+      if (cromo) openIntercModal(cromo);
+    });
+  });
+}
+
+/* ===== Modal intercambio ===== */
+let intercCromoActual = null;
+
+function openIntercModal(cromo) {
+  intercCromoActual = cromo;
+  const col = teamColor(cromo.equipo);
+  document.getElementById('interc-modal-info').innerHTML =
+    `<span style="color:${col.bg};font-weight:900">#${cromo.numero}</span>
+     <span style="font-weight:700"> ${cromo.nombre_jugador}</span>
+     <span style="color:var(--text-sub)"> · ${cromo.equipo}</span>`;
+  document.getElementById('interc-con-quien').value = '';
+  document.getElementById('modal-interc-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('interc-con-quien').focus(), 80);
+}
+
+function closeIntercModal() {
+  document.getElementById('modal-interc-overlay').classList.remove('open');
+  intercCromoActual = null;
+}
+
+async function confirmarIntercambio(abrirSobre) {
+  if (!intercCromoActual) return;
+  const cromo    = intercCromoActual;
+  const conQuien = document.getElementById('interc-con-quien').value.trim();
+  closeIntercModal();
+
+  const nuevosReps = cromo.cd_repetidos - 1;
+  const { error } = await db.from('cromos').update({ cd_repetidos: nuevosReps }).eq('id', cromo.id);
+  if (error) { showToast('Error al guardar', 'red'); return; }
+
+  cromo.cd_repetidos = nuevosReps;
+  const msg = conQuien ? `✓ Intercambiado con ${conQuien}` : '✓ Intercambio registrado';
+  showToast(msg, 'green');
+  renderCurrentView();
+
+  if (abrirSobre) openSobreModal();
+}
+
+function bindIntercModal() {
+  document.getElementById('modal-interc-close').addEventListener('click', closeIntercModal);
+  document.getElementById('modal-interc-overlay').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeIntercModal();
+  });
+  document.getElementById('btn-interc-confirmar').addEventListener('click', () => confirmarIntercambio(false));
+  document.getElementById('btn-interc-y-recibir').addEventListener('click', () => confirmarIntercambio(true));
 }
 
 /* ===== Equipos view ===== */
