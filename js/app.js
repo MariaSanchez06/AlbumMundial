@@ -8,7 +8,7 @@ let searchTerm     = '';
 let equipoFilter   = '';
 let posicionFilter = '';
 let viewMode       = localStorage.getItem('viewMode') || 'grid';
-let paginasMap     = JSON.parse(localStorage.getItem('paginas_map') || '{}');
+let paginasMap     = {};
 let pilaEquipos    = new Set();
 let pilaOpen       = false;
 let gruposMap     = {};
@@ -97,10 +97,12 @@ async function loadGruposYEquipos() {
   ]);
   gruposMap    = {};
   teamColorsDB = {};
+  paginasMap   = {};
   equiposReg   = eRes.data || [];
   equiposReg.forEach(r => {
-    if (r.grupo)  gruposMap[r.equipo]    = r.grupo;
-    if (r.color)  teamColorsDB[r.equipo] = r.color;
+    if (r.grupo)   gruposMap[r.equipo]    = r.grupo;
+    if (r.color)   teamColorsDB[r.equipo] = r.color;
+    if (r.pagina)  paginasMap[r.equipo]   = r.pagina;
   });
   // La tabla grupos tiene prioridad (más actualizada)
   if (gRes.data) gRes.data.forEach(r => { gruposMap[r.equipo] = r.grupo; });
@@ -157,6 +159,19 @@ async function saveRegisteredTeam(equipo, siglas, grupo, color) {
   if (grupo) await saveEquipoGrupo(equipo, grupo);
 }
 
+async function saveEquipoPagina(equipo, pagina) {
+  if (pagina) paginasMap[equipo] = pagina;
+  else delete paginasMap[equipo];
+  const existing = equiposReg.find(t => t.equipo === equipo);
+  if (existing) {
+    existing.pagina = pagina || null;
+    await db.from('equipos_reg').update({ pagina: pagina || null }).eq('equipo', equipo);
+  } else {
+    const entry = { equipo, siglas: '', grupo: gruposMap[equipo] || '', pagina: pagina || null };
+    equiposReg.push(entry);
+    await db.from('equipos_reg').upsert(entry);
+  }
+}
 async function saveEquipoColor(equipo, color) {
   teamColorsDB[equipo] = color;
   const existing = equiposReg.find(t => t.equipo === equipo);
@@ -829,10 +844,8 @@ function renderEquipos(container) {
     input.addEventListener('change', e => {
       e.stopPropagation();
       const pag = parseInt(input.value) || null;
-      if (pag) paginasMap[input.dataset.equipo] = pag;
-      else delete paginasMap[input.dataset.equipo];
-      localStorage.setItem('paginas_map', JSON.stringify(paginasMap));
-      showToast(pag ? `📖 Página ${pag} guardada` : 'Página eliminada', 'green', 1500);
+      await saveEquipoPagina(input.dataset.equipo, pag);
+      showToast(pag ? `Página ${pag} guardada` : 'Página eliminada', 'green', 1500);
     });
   });
   container.querySelectorAll('.group-toggle').forEach(header => {
