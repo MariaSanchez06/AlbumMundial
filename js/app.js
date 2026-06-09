@@ -842,7 +842,7 @@ function renderEquipos(container) {
   });
   container.querySelectorAll('.team-page-input').forEach(input => {
     input.addEventListener('click', e => e.stopPropagation());
-    input.addEventListener('change', e => {
+    input.addEventListener('change', async e => {
       e.stopPropagation();
       const pag = parseInt(input.value) || null;
       await saveEquipoPagina(input.dataset.equipo, pag);
