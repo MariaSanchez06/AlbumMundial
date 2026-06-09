@@ -228,6 +228,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   bindEditarModal();
   bindSobreModal();
   await loadCromos();
+  db.from('cromos').select('id', { count: 'exact', head: true }).then(() => {});
 });
 
 /* ===== Data loading ===== */
