@@ -234,10 +234,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 /* ===== Data loading ===== */
 async function loadCromos() {
   showLoading();
-  await migrateLocalStorage();
   const [{ data, error }] = await Promise.all([
-    db.from('cromos').select('*').order('equipo').order('numero'),
-    loadGruposYEquipos()
+    db.from('cromos').select('id,equipo,numero,nombre_jugador,siglas,cd_repetidos,obtenido,posicion').order('equipo').order('numero'),
+    loadGruposYEquipos(),
+    migrateLocalStorage()
   ]);
   if (error) { showDBError(error); return; }
   allCromos = data;
